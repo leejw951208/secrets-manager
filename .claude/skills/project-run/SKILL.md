@@ -1,13 +1,13 @@
 ---
 name: project-run
-description: 기능 개발 파이프라인(plan → implement → verify → patch → verify)을 한 번의 호출로 순차 실행한다. 기능 설명 또는 기존 slug를 입력으로 받는다. 사용 예: /project-run 사용자 로그인
+description: 기능 개발 파이프라인(plan → design? → implement → verify → patch → verify)을 한 번의 호출로 순차 실행한다. 디자인 단계는 UI 여부에 따라 자동 분기한다. 기능 설명 또는 기존 slug를 입력으로 받는다. 사용 예. /project-run 사용자 로그인
 ---
 
 # project-run
 
 기능 개발 파이프라인을 순차 실행하는 오케스트레이터다.
 
-`project-plan` → `project-implement` → `project-verify` → (`project-patch` → `project-verify`)\* 를
+`project-plan` → (UI일 때) `project-design` → `project-implement` → `project-verify` → (`project-patch` → `project-verify`)\* 를
 한 번의 호출로 이어서 실행한다.
 
 ---
@@ -42,10 +42,11 @@ cat docs/features/$ARGUMENTS/phase.md 2>/dev/null
 
 | phase.md | 시작 지점 |
 |----------|-----------|
-| `planned` | 2. IMPLEMENT |
+| `planned` | 1.5 DESIGN 게이트 (UI 여부 판별 후 분기) |
+| `designed` | 2. IMPLEMENT |
 | `implemented` | 3. VERIFY |
 | `verified` | 4. PATCH 루프 (review.md OPEN 확인) |
-| `planning` / `implementing` / `verifying` (중단됨) | 해당 단계 재실행 |
+| `planning` / `designing` / `implementing` / `verifying` (중단됨) | 해당 단계 재실행 |
 
 ---
 
@@ -60,7 +61,47 @@ cat docs/features/$ARGUMENTS/phase.md 2>/dev/null
 
 > `docs/features/<slug>/spec.md` 와 `plan.md` 를 검토하세요. 구현을 진행할까요?
 
-사용자가 승인하면 **2. IMPLEMENT** 로 진행한다. 거부하거나 수정을 요청하면 멈춘다.
+사용자가 승인하면 **1.5 DESIGN 게이트** 로 진행한다. 거부하거나 수정을 요청하면 멈춘다.
+
+---
+
+## 1.5 DESIGN 게이트 (UI 여부 자동 판별 + 1회 확인)
+
+기능에 UI 표면이 있는지 자동 판별한다. 다음 신호 중 하나라도 잡히면 `UI_LIKELY` 로 본다.
+
+```bash
+grep -lEi "화면|페이지|버튼|폼|UI|UX|레이아웃|모달|토스트|컴포넌트" \
+  docs/features/$FEATURE_SLUG/spec.md \
+  docs/features/$FEATURE_SLUG/plan.md 2>/dev/null
+
+grep -lE "apps/web/" docs/features/$FEATURE_SLUG/plan.md 2>/dev/null
+```
+
+- 두 명령 모두 출력이 비면 `UI_UNLIKELY`. 사용자에게 묻지 않고 디자인 단계를 **건너뛰고** 2. IMPLEMENT 로 진행한다.
+- 하나라도 매치되면 `UI_LIKELY`. 사용자에게 **1회만** 확인한다.
+
+> 이 기능에 UI 화면이 포함된 것 같습니다. 디자인 단계(`/project-design`)를 진행할까요?
+
+- 사용자가 **승인** → **1.6 DESIGN** 으로 진행한다.
+- 사용자가 **건너뛰기 선택** → 2. IMPLEMENT 로 진행한다. `phase.md` 는 그대로 `planned` 유지.
+
+---
+
+## 1.6 DESIGN (자동, 게이트 통과 시)
+
+`Skill` 툴로 `project-design` 스킬을 호출한다. (`FEATURE_SLUG` 를 인자로 전달)
+
+- project-design 내부의 PLAN REVIEW 승인 게이트는 그대로 작동시킨다.
+- project-design 이 종료 메시지를 띄우면, **종료하지 말고** 2. IMPLEMENT 로 진행한다.
+- 서브에이전트가 디자인 실패를 보고하면 즉시 중단하고 보고한다.
+
+project-design 종료 후 phase.md 가 `designed` 로 갱신되었는지 확인한다.
+
+```bash
+cat docs/features/$FEATURE_SLUG/phase.md
+```
+
+`designed` 가 아니면 사용자에게 알리고 멈춘다.
 
 ---
 
@@ -107,12 +148,14 @@ grep -c "| OPEN |" docs/features/<slug>/review.md 2>/dev/null || echo "0"
 ✅ project-run 완료: <slug>
 
 PLAN       : 완료
+DESIGN     : {완료 / 건너뜀}
 IMPLEMENT  : 완료
 VERIFY     : 완료
 PATCH 루프 : {n}회 실행
 
 잔여 OPEN  : {n}건
 review.md  : docs/features/<slug>/review.md
+{DESIGN 완료 시} design.md  : docs/features/<slug>/design.md
 
 {잔여 OPEN이 있으면}
 OPEN 항목이 남아 있습니다. /project-patch <slug> 로 수동 보강 후 /project-verify <slug> 를 재실행하세요.

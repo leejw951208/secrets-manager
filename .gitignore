@@ -33,3 +33,6 @@ pnpm-debug.log*
 
 # macOS
 .DS_Store
+
+# project-design 캐시 (HTML/CSS 임시 보관, project-implement가 React로 변환 후 삭제 가능)
+.design-cache/

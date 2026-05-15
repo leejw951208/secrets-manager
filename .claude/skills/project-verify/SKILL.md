@@ -1,6 +1,6 @@
 ---
 name: project-verify
-description: spec.md, plan.md 기반으로 코드 리뷰, 기능 검증, 보안 감사를 수행하고 docs/features/<slug>/review.md를 생성한다. 사용 예: /project-verify user-login
+description: spec.md, plan.md 기반으로 코드 리뷰, 기능 검증, 보안 감사를 수행하고 docs/features/<slug>/review.md를 생성한다. 사용 예. /project-verify user-login
 ---
 
 # project-verify
@@ -13,7 +13,7 @@ description: spec.md, plan.md 기반으로 코드 리뷰, 기능 검증, 보안 
 
 `$ARGUMENTS` 를 feature slug로 사용한다.
 
-- `$ARGUMENTS` 가 있으면 그대로 사용한다.
+- `$ARGUMENTS` 가 있으면 그대로 사용한다. 예: `/project-verify user-login`
 - `$ARGUMENTS` 가 없으면 사용자에게 묻는다. > 어떤 기능을 검증할까요?
 
 `docs/features/$ARGUMENTS/` 경로와 구현 완료 여부를 확인한다.
@@ -28,7 +28,7 @@ cat docs/features/$ARGUMENTS/phase.md 2>/dev/null
 
 `DOCS_MISSING` 이면 중단한다.
 
-> `docs/features/$ARGUMENTS/` 문서를 찾을 수 없습니다. `/project:plan` 을 먼저 실행하세요.
+> `docs/features/$ARGUMENTS/` 문서를 찾을 수 없습니다. `/project-plan` 을 먼저 실행하세요.
 
 `phase.md` 가 `implemented` 가 아니면 사용자에게 알린다.
 
@@ -63,6 +63,14 @@ cat docs/features/$ARGUMENTS/phase.md 2>/dev/null
 >
 > `docs/features/{FEATURE_SLUG}/spec.md`, `plan.md` 를 읽는다.
 >
+> 디자인 산출물이 있으면 함께 읽는다.
+>
+> ```bash
+> ls docs/features/{FEATURE_SLUG}/design.md 2>/dev/null
+> ```
+>
+> 존재하면 “디자인 적합성” 검증 섹션을 활성화한다(아래 산출물 저장 단계 참조). 토큰 정의는 §1, 라이브 QA 결과(잔존 OPEN)는 §5 에서 인용한다.
+>
 > ### 코드 리뷰
 >
 > `Skill` 툴을 사용해 gstack의 `review` 스킬을 호출한다. 완료 후 결과를 수집한다.
@@ -87,66 +95,10 @@ cat docs/features/$ARGUMENTS/phase.md 2>/dev/null
 > ### 산출물 저장
 >
 > 결과를 `docs/features/{FEATURE_SLUG}/review.md` 에 저장한다.
+> 산출물 템플릿은 `${CLAUDE_SKILL_DIR}/templates/review.md` 를 읽고 해당 구조를 그대로 사용한다.
+> 헤더/표 컬럼/순서를 임의로 바꾸지 않고, 각 섹션의 빈 셀과 플레이스홀더만 채운다.
 >
-> ```markdown
-> # Review: {FEATURE_SLUG}
->
-> ## 리뷰 개요
->
-> - 일자: {date 결과}
-> - Spec: docs/features/{FEATURE_SLUG}/spec.md
-> - Plan: docs/features/{FEATURE_SLUG}/plan.md
->
-> ---
->
-> ## 1. Spec 일치 여부
->
-> | # | 요구사항 | 상태 | 근거 |
-> |---|----------|------|------|
->
-> **요약:** DONE {n} / PARTIAL {n} / NOT DONE {n} / CHANGED {n}
->
-> ---
->
-> ## 2. Plan 일치 여부
->
-> | 태스크 | 상태 | 비고 |
-> |--------|------|------|
->
-> **스코프 이탈:** {없음 또는 목록}
->
-> ---
->
-> ## 3. 테스트 커버리지
->
-> | 요구사항 | 테스트 | 비고 |
-> |----------|--------|------|
->
-> **미테스트:** {n}건
->
-> ---
->
-> ## 4. 발견 항목
->
-> | 상태 | 심각도 | 신뢰도 | 위치 | 내용 |
-> |------|--------|--------|------|------|
->
-> ### Appendix (confidence 5 미만)
->
-> | 심각도 | 신뢰도 | 위치 | 내용 |
-> |--------|--------|------|------|
->
-> ---
->
-> ## 5. 기능 검증
->
-> {/qa-only 결과}
->
-> ---
->
-> ## 6. 보안 감사
->
-> {/cso 결과}
+> §7 디자인 적합성은 `docs/features/{FEATURE_SLUG}/design.md` 가 존재할 때만 채운다. 없으면 섹션 본문을 `없음 (디자인 단계 미실행)` 한 줄로 대체한다.
 >
 > ### 완료 보고
 >

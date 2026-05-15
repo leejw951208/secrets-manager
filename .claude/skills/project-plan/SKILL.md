@@ -1,6 +1,6 @@
 ---
 name: project-plan
-description: 새 기능의 계획 단계를 시작한다. 기능 설명을 입력하면 비즈니스/엔지니어링 리뷰를 수행하고 docs/features/<slug>/ 경로에 spec.md, plan.md, progress.md를 생성한다. 사용 예: /project-plan 사용자 로그인
+description: 새 기능의 계획 단계를 시작한다. 기능 설명을 입력하면 비즈니스/엔지니어링 리뷰를 수행하고 docs/features/<slug>/ 경로에 spec.md, plan.md, progress.md를 생성한다. 사용 예. /project-plan 사용자 로그인
 ---
 
 # project-plan
