@@ -19,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/expenses">정기 지출</Link>
             <Link href="/calendar">캘린더</Link>
             <Link href="/summary">합계</Link>
+            <Link href="/vault">보관함</Link>
           </nav>
         </header>
         <main className="container">{children}</main>

@@ -45,3 +45,38 @@ model ExpenseOccurrence {
   @@index([expenseId])
   @@index([status])
 }
+
+// 단일 사용자 마스터 패스워드의 KDF 파라미터와 verifyToken 을 보관한다.
+// id 는 항상 "singleton" 고정값으로 단일 행을 강제한다.
+model VaultMaster {
+  id                String   @id @default("singleton")
+  kdfVersion        Int      @default(1)
+  kdfAlgorithm      String   @default("argon2id")
+  kdfMemoryKiB      Int      @default(65536)
+  kdfIterations     Int      @default(3)
+  kdfParallelism    Int      @default(1)
+  salt              Bytes
+  verifyIv          Bytes
+  verifyCiphertext  Bytes
+  verifyAuthTag     Bytes
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// 카테고리·라벨 평문 + AEAD 암호화된 자격증명 본문.
+// label 은 검색용 평문이고 ciphertext 는 unlock 상태에서만 복호화된다.
+model VaultEntry {
+  id            String   @id @default(cuid())
+  category      String
+  label         String
+  iv            Bytes
+  ciphertext    Bytes
+  authTag       Bytes
+  kdfVersion    Int      @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+  @@index([label])
+  @@unique([category, label])
+}

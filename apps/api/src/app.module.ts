@@ -7,6 +7,7 @@ import { ExpensesModule } from './expenses/expenses.module';
 import { OccurrencesModule } from './occurrences/occurrences.module';
 import { SummaryModule } from './summary/summary.module';
 import { ExportModule } from './export/export.module';
+import { VaultModule } from './vault/vault.module';
 import { AuthGuard } from './auth/auth.guard';
 
 @Module({
@@ -16,7 +17,8 @@ import { AuthGuard } from './auth/auth.guard';
     ExpensesModule,
     OccurrencesModule,
     SummaryModule,
-    ExportModule
+    ExportModule,
+    VaultModule
   ],
   providers: [
     {
