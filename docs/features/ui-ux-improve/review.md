@@ -1,10 +1,10 @@
-# Review: ui-ux-improve-claude
+# Review: ui-ux-improve
 
 ## 리뷰 개요
 
 - 일자: 2026-05-17 (재검증 6회차)
-- Spec: docs/features/ui-ux-improve-claude/spec.md
-- Plan: docs/features/ui-ux-improve-claude/plan.md
+- Spec: docs/features/ui-ux-improve/spec.md
+- Plan: docs/features/ui-ux-improve/plan.md
 - 브랜치. main
 - 자동 검증. `pnpm --filter @life-key/web typecheck` 통과, `pnpm --filter @life-key/web test` 32/32 통과, `pnpm --filter @life-key/web build` 통과, `pnpm --filter @life-key/web run test:visual` 69/69 통과.
 - 검증 메모. `test:visual`은 빌드 전 병렬 실행 1회가 `.next` 부재로 실패했고, `next build` 완료 후 재실행해 69/69 통과를 확인했다.
@@ -22,7 +22,7 @@
 | CLOSED | — | DONE | S5 | `/vault` 목록 + URL 필터·검색 | [apps/web/app/vault/EntriesScreen.tsx:17](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/EntriesScreen.tsx:17), [apps/web/app/vault/EntriesScreen.tsx:54](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/EntriesScreen.tsx:54), [apps/web/app/vault/EntriesScreen.tsx:102](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/EntriesScreen.tsx:102) | — |
 | CLOSED | — | DONE | S6 | `/vault/new` 신규 entry 라우트 | [apps/web/app/vault/new/page.tsx:20](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/new/page.tsx:20), [apps/web/app/vault/new/page.tsx:22](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/new/page.tsx:22) | — |
 | CLOSED | — | DONE | S7 | `/vault/[id]` 3섹션 카드 + view↔edit + 삭제 | [apps/web/app/vault/[id]/page.tsx:115](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/[id]/page.tsx:115), [apps/web/app/vault/[id]/page.tsx:127](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/[id]/page.tsx:127), [apps/web/app/vault/[id]/page.tsx:149](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/[id]/page.tsx:149), [apps/web/app/vault/[id]/page.tsx:174](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/[id]/page.tsx:174) | — |
-| CLOSED | — | CHANGED | S8 | `/vault/categories` 카테고리 메타 관리 | [docs/features/ui-ux-improve-claude/spec.md:48](/Users/leejinwoo/Desktop/study/my-vault/docs/features/ui-ux-improve-claude/spec.md:48), [apps/web/app/vault/categories/page.tsx:11](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/categories/page.tsx:11), [apps/web/app/vault/categories/page.tsx:19](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/categories/page.tsx:19) | spec에 read-only reference 결정이 반영되어 수용한다. |
+| CLOSED | — | CHANGED | S8 | `/vault/categories` 카테고리 메타 관리 | [docs/features/ui-ux-improve/spec.md:48](/Users/leejinwoo/Desktop/study/my-vault/docs/features/ui-ux-improve/spec.md:48), [apps/web/app/vault/categories/page.tsx:11](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/categories/page.tsx:11), [apps/web/app/vault/categories/page.tsx:19](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/categories/page.tsx:19) | spec에 read-only reference 결정이 반영되어 수용한다. |
 | CLOSED | — | DONE | S9 | `/vault/backup` BackupPanel 단독 라우트 | [apps/web/app/vault/backup/page.tsx:6](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/backup/page.tsx:6), [apps/web/app/vault/backup/page.tsx:15](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/backup/page.tsx:15) | — |
 | CLOSED | — | DONE | S10 | detail 페이지 IA 그룹화 | [apps/web/app/expenses/[id]/ExpenseDetailView.tsx:52](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/expenses/[id]/ExpenseDetailView.tsx:52), [apps/web/app/vault/[id]/page.tsx:117](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/[id]/page.tsx:117) | — |
 | CLOSED | — | DONE | S11 | edit 별도 라우트 없이 inline 전환 | [apps/web/app/expenses/[id]/ExpenseDetailView.tsx:22](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/expenses/[id]/ExpenseDetailView.tsx:22), [apps/web/app/vault/[id]/page.tsx:28](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/[id]/page.tsx:28) | — |
@@ -55,7 +55,7 @@
 | CLOSED | — | DONE | T302 `/vault/new` | [apps/web/app/vault/new/page.tsx:20](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/new/page.tsx:20) | — |
 | CLOSED | — | DONE | T303 `/vault/[id]` 3섹션 + edit | [apps/web/app/vault/[id]/page.tsx:115](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/[id]/page.tsx:115), [apps/web/app/vault/[id]/page.tsx:161](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/[id]/page.tsx:161) | — |
 | CLOSED | — | DONE | T304 `/vault` 필터·검색 URL state | [apps/web/app/vault/EntriesScreen.tsx:54](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/EntriesScreen.tsx:54), [apps/web/app/vault/vault-filter.ts:7](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/vault-filter.ts:7) | — |
-| CLOSED | — | CHANGED | T401 `/vault/categories` | [docs/features/ui-ux-improve-claude/spec.md:48](/Users/leejinwoo/Desktop/study/my-vault/docs/features/ui-ux-improve-claude/spec.md:48), [apps/web/app/vault/categories/page.tsx:11](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/categories/page.tsx:11) | spec가 read-only reference로 정정되어 수용한다. |
+| CLOSED | — | CHANGED | T401 `/vault/categories` | [docs/features/ui-ux-improve/spec.md:48](/Users/leejinwoo/Desktop/study/my-vault/docs/features/ui-ux-improve/spec.md:48), [apps/web/app/vault/categories/page.tsx:11](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/categories/page.tsx:11) | spec가 read-only reference로 정정되어 수용한다. |
 | CLOSED | — | DONE | T402 `/vault/backup` | [apps/web/app/vault/backup/page.tsx:6](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/backup/page.tsx:6) | — |
 | CLOSED | — | DONE | T403 vault 헤더 보조 액션 링크 | [apps/web/app/vault/EntriesScreen.tsx:96](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/EntriesScreen.tsx:96) | — |
 | CLOSED | — | DONE | T501 시각 baseline 갱신 | baseline png 33개 확인, `test:visual` 69/69 통과 | — |
@@ -95,14 +95,14 @@
 | OPEN | LOW | 7/10 | DX | [apps/web/app/expenses/ExpensesView.tsx:81](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/expenses/ExpensesView.tsx:81), [apps/web/app/vault/EntriesScreen.tsx:76](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/EntriesScreen.tsx:76), [apps/web/app/vault/[id]/page.tsx:108](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/[id]/page.tsx:108) | 헤더와 toolbar의 `style={{ display: 'flex', ... }}` 패턴이 여러 라우트에 반복된다. 기능 영향은 없지만 이후 라우트가 더 늘면 유지보수 비용이 증가한다. | 다음 디자인 토큰화 회차에서 `.toolbar` 또는 `.detail-header` 클래스를 추출한다. |
 | CLOSED | — | 9/10 | QA | apps/web/tests/visual/*-snapshots | visual baseline png 33개가 존재하고 `test:visual` 69/69가 통과한다. | — |
 | CLOSED | — | 10/10 | REGRESSION | [apps/web/app/ui-ux-redesign-open-items.spec.ts:18](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/ui-ux-redesign-open-items.spec.ts:18) | CategoryForm 라우트 분리 맥락에 맞춰 이전 bottom-sheet 회귀 테스트가 갱신되어 Jest 32/32가 통과한다. | — |
-| CLOSED | — | 7/10 | OTHER | [docs/features/ui-ux-improve-claude/spec.md:48](/Users/leejinwoo/Desktop/study/my-vault/docs/features/ui-ux-improve-claude/spec.md:48) | `/vault/categories` read-only reference 결정과 사유가 spec에 반영되어 plan과 구현 차이가 설명된다. | — |
+| CLOSED | — | 7/10 | OTHER | [docs/features/ui-ux-improve/spec.md:48](/Users/leejinwoo/Desktop/study/my-vault/docs/features/ui-ux-improve/spec.md:48) | `/vault/categories` read-only reference 결정과 사유가 spec에 반영되어 plan과 구현 차이가 설명된다. | — |
 
 ### Appendix (confidence 5 미만)
 
 | 처리상태 | 심각도 | 신뢰도 | 분류 | 위치 | 내용 | 보강 지시 |
 |----------|--------|--------|------|------|------|-----------|
 | CLOSED | INFORMATIONAL | 4/10 | DX | [apps/web/app/vault/layout.tsx:26](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/layout.tsx:26) | idle countdown 첫 tick 지연은 server `idleSecondsRemaining` fetch 시점 기준과 일치하도록 의도 주석이 추가되어 있다. | — |
-| OPEN | INFORMATIONAL | 3/10 | DX | [apps/web/app/vault/EntriesScreen.tsx:96](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/EntriesScreen.tsx:96) | 헤더 보조 액션 중 `+ 항목 추가`가 `marginLeft: auto`를 사용한다. flex-wrap 상황에서 좌측 정렬 가능성이 있으나 의도된 우측 밀기일 수도 있다. | `$project-patch ui-ux-improve-claude --include-appendix` 실행 시 실제 모바일 스크린샷을 확인하고 조정 여부를 결정한다. |
+| OPEN | INFORMATIONAL | 3/10 | DX | [apps/web/app/vault/EntriesScreen.tsx:96](/Users/leejinwoo/Desktop/study/my-vault/apps/web/app/vault/EntriesScreen.tsx:96) | 헤더 보조 액션 중 `+ 항목 추가`가 `marginLeft: auto`를 사용한다. flex-wrap 상황에서 좌측 정렬 가능성이 있으나 의도된 우측 밀기일 수도 있다. | `$project-patch ui-ux-improve --include-appendix` 실행 시 실제 모바일 스크린샷을 확인하고 조정 여부를 결정한다. |
 
 ---
 

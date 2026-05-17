@@ -90,7 +90,7 @@
 | 담당 | 내용 | 기한 |
 |------|------|------|
 | 사용자 | 백엔드 띄우고 `pnpm --filter @life-key/web run test:visual:update` 로 baseline 11개 캡처 | verify 단계 |
-| 사용자 | `/project-verify ui-ux-improve-claude` 실행 | verify 단계 |
+| 사용자 | `/project-verify ui-ux-improve` 실행 | verify 단계 |
 
 ## 향후 작업 (TODOS 이관)
 
