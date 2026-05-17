@@ -11,6 +11,12 @@ import {
     ResponsiveTable,
     type ResponsiveColumn,
 } from "@/components/ResponsiveTable"
+import {
+    REMINDER_SUMMARY_LABELS,
+    reminderFilterHref,
+    summarizeReminders,
+    type ReminderBucketKey,
+} from "./occurrences/reminder-state"
 
 export const dynamic = "force-dynamic"
 
@@ -46,6 +52,13 @@ const UPCOMING_COLUMNS: ResponsiveColumn<Occurrence>[] = [
     },
 ]
 
+const REMINDER_BUCKETS: ReminderBucketKey[] = [
+    "overdue",
+    "today",
+    "within3Days",
+    "within7Days",
+]
+
 export default async function DashboardPage() {
     const today = todayIso()
     const { from: monthFrom, to: monthTo } = monthRange(today)
@@ -53,15 +66,26 @@ export default async function DashboardPage() {
 
     let monthly: Occurrence[] = []
     let upcoming: Occurrence[] = []
+    let reminderOccurrences: Occurrence[] = []
     let expensesCount = 0
     let error: string | null = null
 
     try {
-        ;[monthly, upcoming, expensesCount] = await Promise.all([
-            getOccurrences({ from: monthFrom, to: monthTo }),
-            getOccurrences({ from: today, to: next7, status: "SCHEDULED" }),
-            getExpenses().then((rows) => rows.length),
-        ])
+        ;[monthly, upcoming, reminderOccurrences, expensesCount] =
+            await Promise.all([
+                getOccurrences({ from: monthFrom, to: monthTo }),
+                getOccurrences({
+                    from: today,
+                    to: next7,
+                    status: "SCHEDULED",
+                }),
+                getOccurrences({
+                    from: "2000-01-01",
+                    to: next7,
+                    status: "SCHEDULED",
+                }),
+                getExpenses().then((rows) => rows.length),
+            ])
     } catch (e) {
         error = (e as Error).message
     }
@@ -71,6 +95,10 @@ export default async function DashboardPage() {
         0,
     )
     const unpaidCount = monthly.filter((o) => o.status === "SCHEDULED").length
+    const reminderSummary = summarizeReminders(reminderOccurrences, today)
+    const hasReminderItems = REMINDER_BUCKETS.some(
+        (bucket) => reminderSummary[bucket].count > 0,
+    )
 
     return (
         <section>
@@ -105,6 +133,41 @@ export default async function DashboardPage() {
                     <Link href="/expenses">관리 →</Link>
                 </div>
             </div>
+
+            <h2 className="section-title">결제 리마인더</h2>
+            <div className="grid cards">
+                {REMINDER_BUCKETS.map((bucket) => {
+                    const item = reminderSummary[bucket]
+                    return (
+                        <Link
+                            key={bucket}
+                            className={`card reminder-card reminder-card-${bucket}`}
+                            href={reminderFilterHref(bucket, today)}
+                        >
+                            <span className="muted">
+                                {REMINDER_SUMMARY_LABELS[bucket]}
+                            </span>
+                            <span className="amount large">{item.count}건</span>
+                            <span className="muted dashboard-date-range">
+                                {formatCurrency(item.total)}
+                            </span>
+                        </Link>
+                    )
+                })}
+            </div>
+            {!hasReminderItems && (
+                <div className="empty reminder-empty">
+                    처리할 리마인더가 없습니다.
+                    <div className="reminder-empty-actions">
+                        <Link className="btn secondary" href="/expenses/new">
+                            정기 지출 추가
+                        </Link>
+                        <Link className="btn secondary" href="/occurrences">
+                            결제 리스트
+                        </Link>
+                    </div>
+                </div>
+            )}
 
             <h2 className="section-title">다음 7일 예정</h2>
             {upcoming.length === 0 ? (

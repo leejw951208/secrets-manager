@@ -2,7 +2,7 @@
 // 결제 인스턴스 리스트 클라이언트 뷰. 기간·카테고리·결제수단·상태 필터를 URL에 반영한다.
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { formatCurrency, formatDate } from "@/lib/format"
+import { formatCurrency, formatDate, todayIso } from "@/lib/format"
 import type { ExpenseOccurrence, OccurrenceStatus } from "@/lib/types"
 import type { ListOccurrencesParams } from "@/lib/api-client"
 import {
@@ -10,6 +10,7 @@ import {
     type ResponsiveColumn,
 } from "@/components/ResponsiveTable"
 import { OccurrencePanel } from "@/components/OccurrencePanel"
+import { REMINDER_LABELS, classifyReminder } from "./reminder-state"
 
 const STATUS_OPTIONS: Array<{ value: "" | OccurrenceStatus; label: string }> = [
     { value: "", label: "전체 상태" },
@@ -38,6 +39,7 @@ export function OccurrencesView({
 }: Props) {
     const router = useRouter()
     const [selected, setSelected] = useState<ExpenseOccurrence | null>(null)
+    const today = useMemo(() => todayIso(), [])
 
     const categories = useMemo(
         () => unique(optionOccurrences.map((item) => item.expense.category)),
@@ -86,6 +88,22 @@ export function OccurrencesView({
             key: "dueDate",
             header: "예정일",
             render: (item) => formatDate(item.dueDate),
+        },
+        {
+            key: "reminder",
+            header: "리마인더",
+            render: (item) => {
+                const reminder = classifyReminder(item, today)
+                if (reminder === "NONE") return "-"
+                return (
+                    <span
+                        className={`reminder-badge reminder-${reminder}`}
+                        aria-label={`리마인더 ${REMINDER_LABELS[reminder]}`}
+                    >
+                        {REMINDER_LABELS[reminder]}
+                    </span>
+                )
+            },
         },
         {
             key: "category",

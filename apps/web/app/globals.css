@@ -216,6 +216,38 @@ a:hover {
     font-size: var(--font-xl);
 }
 
+.reminder-card {
+    color: var(--color-text-primary);
+    display: grid;
+    gap: var(--space-1);
+    text-decoration: none;
+}
+
+.reminder-card:hover {
+    border-color: var(--color-border-strong);
+    text-decoration: none;
+}
+
+.reminder-card-overdue {
+    border-color: var(--color-danger-border);
+}
+
+.reminder-card-today {
+    border-color: var(--color-warning-border);
+}
+
+.reminder-empty {
+    margin-top: var(--space-3);
+}
+
+.reminder-empty-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-top: var(--space-2);
+}
+
 /* Button — 44px 터치 타깃 보장 */
 .btn {
     display: inline-flex;
@@ -370,6 +402,7 @@ textarea.field-control {
     justify-content: space-between;
     gap: var(--space-2);
     font-size: var(--font-sm);
+    align-items: center;
 }
 
 .responsive-table-card-label {
@@ -394,6 +427,38 @@ textarea.field-control {
 .status-SKIPPED {
     background: var(--color-danger-bg);
     color: var(--color-danger-fg);
+}
+
+.reminder-badge {
+    display: inline-block;
+    min-width: 64px;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-full);
+    font-size: var(--font-xs);
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.reminder-OVERDUE {
+    background: var(--color-danger-bg);
+    color: var(--color-danger-fg);
+}
+
+.reminder-TODAY {
+    background: var(--color-warning-bg);
+    color: var(--color-warning-fg);
+}
+
+.reminder-DUE_SOON_3 {
+    background: var(--color-info-bg);
+    color: var(--color-info-fg);
+}
+
+.reminder-DUE_SOON_7,
+.reminder-NORMAL {
+    background: var(--color-bg-outer);
+    color: var(--color-text-secondary);
 }
 
 .inactive-badge {
