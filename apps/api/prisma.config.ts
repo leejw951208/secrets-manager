@@ -1,4 +1,4 @@
-// NODE_ENV 별 env 파일을 우선 로드한다(이미 설정된 변수는 덮어쓰지 않음).
+// NODE_ENV 별 env 파일을 우선 로드한다(예시는 단일 .env.example).
 import { config as loadEnv } from "dotenv"
 import { defineConfig, env } from "prisma/config"
 

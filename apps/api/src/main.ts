@@ -10,7 +10,7 @@ async function bootstrap() {
     const databaseUrl = process.env.DATABASE_URL?.trim()
     if (!databaseUrl) {
         Logger.error(
-            "DATABASE_URL 환경 변수가 설정되어 있지 않습니다. apps/api/.env.development.example 을 참고해 .env.development 파일을 만들어주세요.",
+            "DATABASE_URL 환경 변수가 설정되어 있지 않습니다. apps/api/.env.example 을 복사해 .env.development(또는 .env.production) 파일을 만들어주세요.",
             "Bootstrap",
         )
         process.exit(1)

@@ -62,7 +62,7 @@ docker compose --profile cloudflare up -d --build
 ## 5. 배포 체크리스트
 
 - [ ] `docker compose up -d --build`로 3개 서비스가 healthy.
-- [ ] `apps/api/.env.production`(또는 compose env)에 강한 `DATABASE_URL`. 기본 `secrets:secrets`는 운영 전 변경. `*.production.example` 참고.
+- [ ] `apps/api/.env.production`(또는 compose env)에 강한 `DATABASE_URL`. 기본 `secrets:secrets`는 운영 전 변경. `apps/api/.env.example` 의 `[운영]` 주석 참고.
 - [ ] DB 볼륨 백업 주기 확보(`pg_dump`).
 - [ ] Cloudflare Tunnel 연결 확인(공개 도메인 접속).
 - [ ] **Cloudflare Access 정책 활성화 확인**(미설정 시 배포 중단).
