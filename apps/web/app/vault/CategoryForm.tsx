@@ -273,7 +273,7 @@ export function CategoryForm({ entry, onSuccess, onCancel }: Props) {
                             />
                             <button
                                 type="button"
-                                className="btn"
+                                className="btn secondary"
                                 onClick={() => removeCustomField(idx)}
                             >
                                 삭제
@@ -308,7 +308,7 @@ export function CategoryForm({ entry, onSuccess, onCancel }: Props) {
                 </button>
                 <button
                     type="button"
-                    className="btn"
+                    className="btn secondary"
                     onClick={onCancel}
                     disabled={submitting}
                 >

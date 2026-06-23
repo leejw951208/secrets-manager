@@ -1,48 +1,53 @@
-/* 전역 스타일. zinc/slate 기반 토큰 + 단일 모바일 레이아웃 + 데스크탑 phone-frame + 접근성 + 모션. */
+/* 전역 스타일. "Strongbox" 디자인 시스템 — 틴티드 다크 스틸 + 무광 황동 단일 액센트.
+   토큰 → 베이스 → 레이아웃(phone-frame) → 컴포넌트 → 시그니처(비밀 플레이트·잠금 타이머) → 접근성·모션 순. */
 
 :root {
-    /* Color — Surface */
-    --color-bg: #f4f4f5;
-    --color-bg-outer: #e4e4e7;
-    --color-surface-1: #ffffff;
-    --color-surface-2: #fafafa;
+    /* Color — Surface (강철 금고 내부) */
+    --color-bg: #12181c; /* 금고 내부 */
+    --color-bg-outer: #0c1013; /* 데스크탑 레터박스 */
+    --color-surface-1: #1a2228; /* 패널(돌출 강철) */
+    --color-surface-2: #141b20; /* 함몰 표면 */
+    --color-plate: #0f151a; /* 비밀 플레이트(가장 깊은 함몰) */
 
     /* Color — Text */
-    --color-text-primary: #18181b;
-    --color-text-secondary: #3f3f46;
-    --color-text-muted: #52525b;
-    --color-text-inverse: #ffffff;
+    --color-text-primary: #eaeff2;
+    --color-text-secondary: #b4c2cc;
+    --color-text-muted: #8b9aa4;
+    --color-text-inverse: #14100a; /* 황동 위 어두운 글자 */
 
     /* Color — Border */
-    --color-border: #e4e4e7;
-    --color-border-strong: #d4d4d8;
+    --color-border: #2a343c;
+    --color-border-strong: #3a4750;
+    --color-edge-highlight: rgba(255, 255, 255, 0.04); /* 패널 상단 1px 금속 하이라이트 */
 
-    /* Color — Accent (브랜드 단일 액센트) */
-    --color-accent: #2c5fef;
-    --color-accent-hover: #1e4ad6;
-    --color-accent-active: #1839a8;
-    --color-accent-fg: #ffffff;
+    /* Color — Accent (무광 황동, 단일 브랜드 액센트) */
+    --color-accent: #cba45c;
+    --color-accent-hover: #e1be76;
+    --color-accent-active: #a8843f;
+    --color-accent-fg: #14100a;
+    --color-accent-soft: rgba(203, 164, 92, 0.12); /* 황동 12% 틴트 */
+    --color-accent-line: rgba(203, 164, 92, 0.32);
 
     /* Color — Focus ring */
-    --color-focus-ring: #2c5fef;
+    --color-focus-ring: #e1be76;
 
-    /* Color — States */
-    --color-success-bg: #ecfdf5;
-    --color-success-fg: #047857;
-    --color-success-border: #a7f3d0;
+    /* Color — States (다크 톤 보정) */
+    --color-success-bg: #14241d;
+    --color-success-fg: #6fd2a3;
+    --color-success-border: #265141;
 
-    --color-warning-bg: #fffbeb;
-    --color-warning-fg: #92400e;
-    --color-warning-border: #fde68a;
+    --color-warning-bg: #2a2212;
+    --color-warning-fg: #e0b452;
+    --color-warning-border: #5a4a23;
 
-    --color-danger-bg: #fef2f2;
-    --color-danger-fg: #b91c1c;
-    --color-danger-fg-hover: #991b1b;
-    --color-danger-border: #fecaca;
+    --color-danger-bg: #2a1818;
+    --color-danger-fg: #f0928c;
+    --color-danger-fg-hover: #f6aaa4;
+    --color-danger-border: #4d2b2b;
 
-    --color-info-bg: #eef2ff;
-    --color-info-fg: #4338ca;
-    --color-info-border: #c7d2fe;
+    --color-info-bg: var(--color-accent-soft);
+    --color-info-fg: var(--color-accent);
+    --color-info-border: var(--color-accent-line);
 
     /* Spacing */
     --space-1: 4px;
@@ -55,16 +60,27 @@
     --space-8: 48px;
 
     /* Radius */
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
+    --radius-sm: 5px;
+    --radius-md: 9px;
+    --radius-lg: 14px;
     --radius-full: 999px;
 
-    /* Shadow */
-    --shadow-sm: 0 1px 2px rgba(24, 24, 27, 0.06);
-    --shadow-md: 0 4px 12px rgba(24, 24, 27, 0.08);
+    /* Shadow (다크 — 깊이감 + 황동 포커스용) */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
 
-    /* Font size — body 토큰. 모바일 16px 기본, 데스크탑 분기 아래 참조 */
+    /* Font family — 한글 산문 / 영문 기계 라벨 / 모노 시크릿 3분할 */
+    --font-body:
+        "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont,
+        "Segoe UI", Roboto, sans-serif;
+    --font-display:
+        var(--font-display-grotesk, "Space Grotesk"), "Pretendard",
+        "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+    --font-mono:
+        var(--font-mono-jetbrains, "JetBrains Mono"), ui-monospace,
+        "SFMono-Regular", "Menlo", monospace;
+
+    /* Font size */
     --font-xs: 12px;
     --font-sm: 14px;
     --font-md: 16px;
@@ -85,7 +101,7 @@
     /* Touch target */
     --touch-target-min: 44px;
 
-    /* Bottom tab bar height (모바일에서 main 의 padding-bottom 계산용) */
+    /* Bottom tab bar height */
     --bottom-tab-height: 64px;
 }
 
@@ -99,16 +115,25 @@ body {
     padding: 0;
     background: var(--color-bg);
     color: var(--color-text-primary);
-    font-family:
-        "Pretendard",
-        "Noto Sans KR",
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        sans-serif;
+    font-family: var(--font-body);
     font-size: var(--font-base);
     line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+
+h1 {
+    font-size: var(--font-xl);
+    font-weight: 700;
+    margin: 0;
 }
 
 a {
@@ -118,6 +143,7 @@ a {
 }
 
 a:hover {
+    color: var(--color-accent-hover);
     text-decoration: underline;
 }
 
@@ -131,7 +157,59 @@ a:hover {
     border-radius: var(--radius-sm);
 }
 
-/* Bottom tab bar — 항상 표시. viewport 하단 고정, 가운데 정렬, phone-frame 폭(768px)에 맞춤. */
+/* Eyebrow — Space Grotesk 대문자 기계 라벨 */
+.eyebrow {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--font-xs);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* ── Layout ─────────────────────────────────────────── */
+
+/* Phone frame — 데스크탑 가운데 정렬, 모바일 풀스크린. 상단에 황동 hairline. */
+.phone-frame {
+    position: relative;
+    min-height: 100vh;
+    background: var(--color-bg);
+}
+
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: var(--container-padding);
+    padding-top: var(--space-4);
+    padding-bottom: calc(var(--bottom-tab-height) + var(--space-4));
+}
+
+.card {
+    position: relative;
+    background: var(--color-surface-1);
+    border: 1px solid var(--color-border);
+    border-top-color: var(--color-edge-highlight);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+}
+
+.grid {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.grid.cards {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.muted {
+    color: var(--color-text-muted);
+}
+
+/* ── Bottom tab bar ─────────────────────────────────── */
 .bottom-tab-bar {
     position: fixed;
     bottom: 0;
@@ -155,9 +233,11 @@ a:hover {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 3px;
     color: var(--color-text-muted);
-    font-size: var(--font-xs);
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 0.08em;
     min-height: var(--touch-target-min);
     text-decoration: none;
     transition: color var(--motion-fast) var(--ease);
@@ -167,92 +247,27 @@ a:hover {
     color: var(--color-accent);
 }
 
+.bottom-tab-bar a[aria-current="page"]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 28px;
+    height: 2px;
+    border-radius: var(--radius-full);
+    background: var(--color-accent);
+}
+
 .bottom-tab-bar a:hover {
+    color: var(--color-text-secondary);
     text-decoration: none;
 }
 
-/* Phone frame — 데스크탑에서 가운데 정렬, 모바일에서는 풀스크린. BottomTabBar 는 viewport fixed 라 wrapper 와 분리. */
-.phone-frame {
-    position: relative;
-    min-height: 100vh;
-    background: var(--color-bg);
-}
-
-.container {
-    max-width: 100%;
-    margin: 0 auto;
-    padding: var(--container-padding);
-    padding-bottom: calc(var(--bottom-tab-height) + var(--space-4));
-}
-
-.card {
-    background: var(--color-surface-1);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-4);
-}
-
-.grid {
-    display: grid;
-    gap: var(--space-3);
-}
-
-.grid.cards {
-    grid-template-columns: repeat(2, 1fr);
-}
-
-.muted {
-    color: var(--color-text-muted);
-}
-.dashboard-date-range {
-    font-size: var(--font-sm);
-    white-space: nowrap;
-}
-.amount {
-    font-variant-numeric: tabular-nums;
-    font-weight: 600;
-}
-.amount.large {
-    font-size: var(--font-xl);
-}
-
-.reminder-card {
-    color: var(--color-text-primary);
-    display: grid;
-    gap: var(--space-1);
-    text-decoration: none;
-}
-
-.reminder-card:hover {
-    border-color: var(--color-border-strong);
-    text-decoration: none;
-}
-
-.reminder-card-overdue {
-    border-color: var(--color-danger-border);
-}
-
-.reminder-card-today {
-    border-color: var(--color-warning-border);
-}
-
-.reminder-empty {
-    margin-top: var(--space-3);
-}
-
-.reminder-empty-actions {
-    display: flex;
-    justify-content: center;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-    margin-top: var(--space-2);
-}
-
-/* Button — 44px 터치 타깃 보장 */
+/* ── Buttons ────────────────────────────────────────── */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: var(--space-2);
     min-height: var(--touch-target-min);
     padding: 0 var(--space-4);
     border: 1px solid var(--color-accent);
@@ -260,8 +275,10 @@ a:hover {
     color: var(--color-accent-fg);
     border-radius: var(--radius-md);
     cursor: pointer;
+    font-family: var(--font-display);
+    font-weight: 500;
     font-size: var(--font-sm);
-    font-family: inherit;
+    letter-spacing: 0.01em;
     transition:
         background-color var(--motion-fast) var(--ease),
         border-color var(--motion-fast) var(--ease),
@@ -280,41 +297,46 @@ a:hover {
 }
 
 .btn.secondary {
-    background: var(--color-surface-1);
+    background: transparent;
     color: var(--color-accent);
+    border-color: var(--color-border-strong);
 }
 
 .btn.secondary:hover:not(:disabled) {
-    background: var(--color-info-bg);
+    background: var(--color-accent-soft);
+    border-color: var(--color-accent);
+    color: var(--color-accent-hover);
 }
 
 .btn.danger {
-    background: var(--color-danger-fg);
-    border-color: var(--color-danger-fg);
-    color: var(--color-text-inverse);
+    background: transparent;
+    border-color: var(--color-danger-border);
+    color: var(--color-danger-fg);
 }
 
 .btn.danger:hover:not(:disabled) {
-    background: var(--color-danger-fg-hover);
-    border-color: var(--color-danger-fg-hover);
+    background: var(--color-danger-bg);
+    border-color: var(--color-danger-fg);
+    color: var(--color-danger-fg-hover);
 }
 
 .btn:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
 }
 
-/* Form row — 모바일은 stack, 태블릿+ 는 grid */
+/* ── Forms ──────────────────────────────────────────── */
 .form-row {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--space-1);
+    gap: var(--space-2);
     margin-bottom: var(--space-3);
 }
 
 .form-row label {
     color: var(--color-text-secondary);
     font-size: var(--font-sm);
+    font-weight: 500;
 }
 
 .form-row input,
@@ -328,14 +350,24 @@ a:hover {
     border-radius: var(--radius-md);
     font-size: var(--font-md); /* 16px — iOS auto-zoom 방지 */
     font-family: inherit;
-    background: var(--color-surface-1);
+    background: var(--color-surface-2);
     color: var(--color-text-primary);
-    transition: border-color var(--motion-fast) var(--ease);
+    transition:
+        border-color var(--motion-fast) var(--ease),
+        box-shadow var(--motion-fast) var(--ease);
+}
+
+.form-row input::placeholder,
+.form-row textarea::placeholder,
+.field-control::placeholder {
+    color: var(--color-text-muted);
 }
 
 .form-row textarea,
 textarea.field-control {
     padding: var(--space-3);
+    min-height: 96px;
+    resize: vertical;
 }
 
 .form-row input:hover,
@@ -350,6 +382,8 @@ textarea.field-control {
 .form-row textarea:focus-visible,
 .field-control:focus-visible {
     border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-soft);
+    outline: none;
 }
 
 .field-control.compact {
@@ -357,24 +391,425 @@ textarea.field-control {
     min-width: 140px;
 }
 
-.table {
-    width: 100%;
-    border-collapse: collapse;
+/* select 화살표 톤 보정 */
+select.field-control,
+.form-row select {
+    color-scheme: dark;
 }
 
-.table th,
-.table td {
-    padding: var(--space-2) var(--space-3);
-    border-bottom: 1px solid var(--color-border);
-    text-align: left;
+/* ── Toolbar / header ───────────────────────────────── */
+.toolbar {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    margin: var(--space-3) 0;
+    flex-wrap: wrap;
 }
 
-.table th {
-    font-weight: 600;
+.push-end {
+    margin-left: auto;
+}
+
+.page-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.section-title {
+    font-family: var(--font-display);
+    font-size: var(--font-lg);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: var(--space-5) 0 var(--space-3);
+}
+
+/* ── Feedback (error / empty) ───────────────────────── */
+.error-box {
+    border: 1px solid var(--color-danger-border);
+    background: var(--color-danger-bg);
+    color: var(--color-danger-fg);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    margin: var(--space-3) 0;
+    font-size: var(--font-sm);
+}
+
+.empty {
+    border: 1px dashed var(--color-border-strong);
+    border-radius: var(--radius-md);
+    padding: var(--space-6) var(--space-5);
+    text-align: center;
+    color: var(--color-text-muted);
     background: var(--color-surface-2);
 }
 
-/* Responsive table — 항상 카드 stack */
+/* ── Entry list (목록) ──────────────────────────────── */
+.entry-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--space-2);
+}
+
+.entry-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    padding-left: var(--space-5);
+    background: var(--color-surface-1);
+    border: 1px solid var(--color-border);
+    border-top-color: var(--color-edge-highlight);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    overflow: hidden;
+    transition:
+        border-color var(--motion-fast) var(--ease),
+        transform var(--motion-fast) var(--ease);
+}
+
+/* 카드 좌측 황동 엣지 — 금고 서랍 손잡이 느낌 */
+.entry-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--color-accent);
+    opacity: 0.55;
+    transition: opacity var(--motion-fast) var(--ease);
+}
+
+.entry-card:hover {
+    border-color: var(--color-border-strong);
+    text-decoration: none;
+}
+
+.entry-card:hover::before {
+    opacity: 1;
+}
+
+.entry-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.entry-label {
+    font-weight: 600;
+    font-size: var(--font-md);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.entry-side {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-shrink: 0;
+}
+
+.entry-chevron {
+    color: var(--color-text-muted);
+    font-size: var(--font-lg);
+}
+
+/* 카테고리 코드 칩 — Space Grotesk 기계 라벨 */
+.cat-badge {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    background: var(--color-accent-soft);
+    border: 1px solid var(--color-accent-line);
+    border-radius: var(--radius-sm);
+    padding: 2px var(--space-2);
+    white-space: nowrap;
+}
+
+/* ── Lock timer (자동 잠금 카운트다운) ──────────────── */
+.lock-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--font-sm);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-secondary);
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    padding: 4px var(--space-3);
+}
+
+.lock-timer .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: var(--radius-full);
+    background: var(--color-accent);
+    box-shadow: 0 0 0 0 var(--color-accent);
+}
+
+.lock-timer.urgent {
+    color: var(--color-danger-fg);
+    border-color: var(--color-danger-border);
+}
+
+.lock-timer.urgent .dot {
+    background: var(--color-danger-fg);
+    animation: pulse 1.2s var(--ease) infinite;
+}
+
+/* ── Detail rows (상세 메타) ────────────────────────── */
+.detail-row {
+    display: flex;
+    gap: var(--space-3);
+    align-items: baseline;
+}
+
+.detail-row dt {
+    min-width: 88px;
+    color: var(--color-text-muted);
+    font-size: var(--font-sm);
+}
+
+.detail-row dd {
+    margin: 0;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+/* ── Secret plate (시그니처: 드러내고 자가소멸) ─────── */
+.secret-plate {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(72px, auto) 1fr auto;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    background: var(--color-plate);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    overflow: hidden;
+}
+
+.secret-label {
+    font-size: var(--font-sm);
+    color: var(--color-text-muted);
+}
+
+.secret-value {
+    font-family: var(--font-mono);
+    font-size: var(--font-md);
+    letter-spacing: 0.04em;
+    word-break: break-all;
+    color: var(--color-text-primary);
+}
+
+/* 마스킹된 점 — 균일한 모노 도트 */
+.secret-value.masked {
+    color: var(--color-text-secondary);
+    letter-spacing: 0.18em;
+}
+
+/* 드러난 비밀값은 황동 모노 */
+.secret-value.revealed {
+    color: var(--color-accent-hover);
+}
+
+.secret-actions {
+    display: inline-flex;
+    gap: var(--space-1);
+    grid-column: 3;
+}
+
+/* 작은 plate 액션 버튼 */
+.secret-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border-strong);
+    background: var(--color-surface-1);
+    color: var(--color-text-secondary);
+    font-family: var(--font-display);
+    font-size: var(--font-xs);
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        border-color var(--motion-fast) var(--ease),
+        color var(--motion-fast) var(--ease),
+        background var(--motion-fast) var(--ease);
+}
+
+.secret-btn:hover:not(:disabled) {
+    border-color: var(--color-accent);
+    color: var(--color-accent-hover);
+    background: var(--color-accent-soft);
+}
+
+/* 자가소멸 게이지 — 복사 후 30초 동안 황동 라인이 줄어든다 */
+.secret-drain {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: 2px;
+}
+
+.secret-drain-track {
+    flex: 1;
+    height: 3px;
+    border-radius: var(--radius-full);
+    background: var(--color-border);
+    overflow: hidden;
+}
+
+.secret-drain-fill {
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        var(--color-accent-active),
+        var(--color-accent)
+    );
+    border-radius: var(--radius-full);
+    transition: width 1s linear;
+}
+
+.secret-drain-count {
+    font-family: var(--font-mono);
+    font-size: var(--font-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-accent);
+    min-width: 28px;
+    text-align: right;
+}
+
+/* memo */
+.secret-memo {
+    grid-column: 1 / -1;
+    white-space: pre-wrap;
+    color: var(--color-text-secondary);
+    font-size: var(--font-sm);
+}
+
+/* ── Vault emblem (잠금/설정 화면 엠블럼) ───────────── */
+.vault-emblem {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-full);
+    display: grid;
+    place-items: center;
+    background: var(--color-accent-soft);
+    border: 1px solid var(--color-accent-line);
+    color: var(--color-accent);
+    margin-bottom: var(--space-4);
+}
+
+/* ── Confirm dialog ─────────────────────────────────── */
+.dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 100;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    animation: fade-in var(--motion-fast) var(--ease);
+}
+
+.dialog {
+    background: var(--color-surface-1);
+    border: 1px solid var(--color-border);
+    border-bottom: none;
+    width: 100%;
+    max-width: 480px;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: var(--space-5);
+    display: grid;
+    gap: var(--space-4);
+    padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
+    animation: slide-up var(--motion-normal) var(--ease);
+}
+
+.dialog-title {
+    font-family: var(--font-display);
+    font-size: var(--font-lg);
+    font-weight: 700;
+    margin: 0;
+}
+
+.dialog-message {
+    font-size: var(--font-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.dialog-actions {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: flex-end;
+}
+
+/* Inline bottom sheet */
+.inline-bottom-sheet {
+    position: sticky;
+    bottom: calc(var(--bottom-tab-height) + var(--space-2));
+    z-index: 40;
+    box-shadow: var(--shadow-md);
+}
+
+.inline-bottom-sheet::before {
+    content: "";
+    width: 40px;
+    height: 4px;
+    border-radius: var(--radius-full);
+    background: var(--color-border-strong);
+    justify-self: center;
+}
+
+/* ── Skeleton ───────────────────────────────────────── */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--color-surface-2) 0%,
+        var(--color-border) 50%,
+        var(--color-surface-2) 100%
+    );
+    background-size: 200% 100%;
+    border-radius: var(--radius-sm);
+    animation: shimmer 1.4s linear infinite;
+}
+
+.skeleton-line {
+    height: 14px;
+    margin: var(--space-1) 0;
+}
+
+.skeleton-card {
+    padding: var(--space-4);
+    background: var(--color-surface-1);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    display: grid;
+    gap: var(--space-2);
+}
+
+/* ── Responsive table (보조 컴포넌트) ───────────────── */
 .responsive-table {
     display: block;
 }
@@ -409,315 +844,32 @@ textarea.field-control {
     color: var(--color-text-muted);
 }
 
-.status-badge {
-    display: inline-block;
-    padding: 2px var(--space-2);
-    border-radius: var(--radius-full);
-    font-size: var(--font-xs);
-}
-
-.status-SCHEDULED {
-    background: var(--color-info-bg);
-    color: var(--color-info-fg);
-}
-.status-PAID {
-    background: var(--color-success-bg);
-    color: var(--color-success-fg);
-}
-.status-SKIPPED {
-    background: var(--color-danger-bg);
-    color: var(--color-danger-fg);
-}
-
-.reminder-badge {
-    display: inline-block;
-    min-width: 64px;
-    padding: 2px var(--space-2);
-    border-radius: var(--radius-full);
-    font-size: var(--font-xs);
-    font-weight: 600;
-    text-align: center;
-    white-space: nowrap;
-}
-
-.reminder-OVERDUE {
-    background: var(--color-danger-bg);
-    color: var(--color-danger-fg);
-}
-
-.reminder-TODAY {
-    background: var(--color-warning-bg);
-    color: var(--color-warning-fg);
-}
-
-.reminder-DUE_SOON_3 {
-    background: var(--color-info-bg);
-    color: var(--color-info-fg);
-}
-
-.reminder-DUE_SOON_7,
-.reminder-NORMAL {
-    background: var(--color-bg-outer);
-    color: var(--color-text-secondary);
-}
-
-.inactive-badge {
-    display: inline-block;
-    padding: 2px var(--space-2);
-    border-radius: var(--radius-full);
-    background: var(--color-bg-outer);
-    color: var(--color-text-muted);
-    font-size: var(--font-xs);
-    font-weight: 500;
-}
-
-.diff.over {
-    color: var(--color-danger-fg);
-}
-.diff.under {
-    color: var(--color-success-fg);
-}
-
-/* Calendar — 데스크탑 그리드 */
-.calendar {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-}
-
-.calendar .dow {
-    font-size: var(--font-xs);
-    color: var(--color-text-muted);
-    padding: var(--space-1);
-    text-align: center;
-}
-
-.calendar .cell {
-    min-height: 80px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: 6px;
-    background: var(--color-surface-1);
-    font-size: var(--font-xs);
-}
-
-.calendar .cell.muted {
-    opacity: 0.4;
-}
-.calendar .chip {
-    display: flex;
-    align-items: center;
+.table {
     width: 100%;
-    background: var(--color-info-bg);
-    color: var(--color-info-fg);
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-    padding: 2px var(--space-1);
-    margin-top: 2px;
-    cursor: pointer;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    min-height: var(--touch-target-min);
-    font: inherit;
-    font-size: var(--font-xs);
-    text-align: left;
-    transition: border-color var(--motion-fast) var(--ease);
+    border-collapse: collapse;
 }
 
-.calendar .chip:hover {
-    border-color: var(--color-border-strong);
-}
-
-.calendar .chip.paid {
-    background: var(--color-success-bg);
-    color: var(--color-success-fg);
-}
-.calendar .chip.skipped {
-    background: var(--color-danger-bg);
-    color: var(--color-danger-fg);
-}
-
-/* Agenda view — 캘린더 단일 뷰. 데스크탑·모바일 모두 동일. */
-.agenda {
-    display: grid;
-    gap: var(--space-3);
-}
-
-.agenda-day {
-    display: grid;
-    gap: var(--space-1);
-}
-
-.agenda-day-header {
-    font-size: var(--font-sm);
-    font-weight: 600;
-    color: var(--color-text-secondary);
-    padding: var(--space-1) 0;
+.table th,
+.table td {
+    padding: var(--space-2) var(--space-3);
     border-bottom: 1px solid var(--color-border);
+    text-align: left;
 }
 
-.agenda-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--color-surface-1);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-3);
-    min-height: var(--touch-target-min);
-    cursor: pointer;
-    transition: border-color var(--motion-fast) var(--ease);
-}
-
-.agenda-item:hover {
-    border-color: var(--color-border-strong);
-}
-
-.agenda-empty {
-    color: var(--color-text-muted);
-    font-size: var(--font-sm);
-    padding: var(--space-2) 0;
-}
-
-.error-box {
-    border: 1px solid var(--color-danger-border);
-    background: var(--color-danger-bg);
-    color: var(--color-danger-fg);
-    padding: var(--space-3);
-    border-radius: var(--radius-md);
-    margin: var(--space-3) 0;
-}
-
-.empty {
-    border: 1px dashed var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-5);
-    text-align: center;
-    color: var(--color-text-muted);
-}
-
-.toolbar {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-    margin: var(--space-3) 0;
-    flex-wrap: wrap;
-}
-
-.push-end {
-    margin-left: auto;
-}
-
-.page-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-}
-
-.section-title {
-    font-size: var(--font-lg);
+.table th {
     font-weight: 600;
-    margin: var(--space-5) 0 var(--space-3);
+    background: var(--color-surface-2);
 }
 
-/* Confirm dialog (bottom-sheet on mobile, modal on desktop) */
-.dialog-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(24, 24, 27, 0.4);
-    z-index: 100;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    animation: fade-in var(--motion-fast) var(--ease);
-}
-
-.dialog {
-    background: var(--color-surface-1);
-    width: 100%;
-    max-width: 480px;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    padding: var(--space-5);
-    display: grid;
-    gap: var(--space-4);
-    padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
-    animation: slide-up var(--motion-normal) var(--ease);
-}
-
-.dialog-title {
-    font-size: var(--font-lg);
-    font-weight: 600;
-    margin: 0;
-}
-
-.dialog-message {
-    font-size: var(--font-sm);
-    color: var(--color-text-secondary);
-    margin: 0;
-}
-
-.dialog-actions {
-    display: flex;
-    gap: var(--space-2);
-    justify-content: flex-end;
-}
-
-/* Inline bottom sheet — 폼/패널을 모바일 하단에 붙여 엄지 영역에서 처리 */
-.inline-bottom-sheet {
-    position: sticky;
-    bottom: calc(var(--bottom-tab-height) + var(--space-2));
-    z-index: 40;
-    box-shadow: var(--shadow-md);
-}
-
-.inline-bottom-sheet::before {
-    content: "";
-    width: 40px;
-    height: 4px;
-    border-radius: var(--radius-full);
-    background: var(--color-border-strong);
-    justify-self: center;
-}
-
-/* Skeleton */
-.skeleton {
-    background: linear-gradient(
-        90deg,
-        var(--color-border) 0%,
-        var(--color-surface-2) 50%,
-        var(--color-border) 100%
-    );
-    background-size: 200% 100%;
-    border-radius: var(--radius-sm);
-    animation: shimmer 1.4s linear infinite;
-}
-
-.skeleton-line {
-    height: 14px;
-    margin: var(--space-1) 0;
-}
-
-.skeleton-card {
-    padding: var(--space-4);
-    background: var(--color-surface-1);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    display: grid;
-    gap: var(--space-2);
-}
-
-/* PWA install banner */
+/* ── PWA install banner ─────────────────────────────── */
 .install-banner {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: var(--space-3);
-    background: var(--color-info-bg);
-    color: var(--color-info-fg);
-    border: 1px solid var(--color-info-border);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+    border: 1px solid var(--color-accent-line);
     border-radius: var(--radius-md);
     padding: var(--space-3);
     margin: var(--space-3) 0;
@@ -734,14 +886,15 @@ textarea.field-control {
     min-height: var(--touch-target-min);
 }
 
-/* Update toast */
+/* ── Update toast ───────────────────────────────────── */
 .update-toast {
     position: fixed;
     bottom: calc(var(--bottom-tab-height) + var(--space-4));
     left: 50%;
     transform: translateX(-50%);
-    background: var(--color-text-primary);
-    color: var(--color-text-inverse);
+    background: var(--color-surface-1);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-strong);
     padding: var(--space-3) var(--space-4);
     border-radius: var(--radius-full);
     font-size: var(--font-sm);
@@ -759,12 +912,13 @@ textarea.field-control {
     border: none;
     border-radius: var(--radius-full);
     padding: var(--space-1) var(--space-3);
+    font-family: var(--font-display);
     font-size: var(--font-sm);
     cursor: pointer;
     min-height: var(--touch-target-min);
 }
 
-/* Animations */
+/* ── Animations ─────────────────────────────────────── */
 @keyframes fade-in {
     from {
         opacity: 0;
@@ -794,7 +948,17 @@ textarea.field-control {
     }
 }
 
-/* Desktop (≥480px) — 본문을 가운데 768px 폭으로 정렬. 양옆은 body 배경 zinc-100 노출. */
+@keyframes pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 var(--color-danger-fg);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(240, 146, 140, 0);
+    }
+}
+
+/* ── Desktop (≥480px) — 768px 패널, 양옆 레터박스 + 상단 황동 hairline ── */
 @media (min-width: 480px) {
     html,
     body {
@@ -807,15 +971,31 @@ textarea.field-control {
         margin: 0 auto;
         background: var(--color-bg);
         min-height: 100vh;
+        border-left: 1px solid var(--color-border);
+        border-right: 1px solid var(--color-border);
     }
 
-    /* Dialog backdrop 은 phone-frame 안에만 표시되도록 absolute */
+    .phone-frame::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            var(--color-accent),
+            transparent
+        );
+    }
+
     .phone-frame .dialog-backdrop {
         position: absolute;
     }
 }
 
-/* prefers-reduced-motion — 모션 무력화 */
+/* ── prefers-reduced-motion ─────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

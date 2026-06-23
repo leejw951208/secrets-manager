@@ -1,8 +1,10 @@
 "use client"
 // 마스터 설정·잠금해제 화면. mode 에 따라 setup/unlock 동작을 분기한다.
 import { FormEvent, useState } from "react"
+import { Lock, ShieldPlus } from "lucide-react"
 import { setupMaster, unlockMaster } from "@/lib/vault-client"
 import { isApiError } from "@/lib/api-error"
+import { Icon } from "@/components/Icon"
 
 type ScreenState = "idle" | "typing" | "verifying" | "failed" | "rate-limited"
 
@@ -61,41 +63,55 @@ export function UnlockScreen({ mode, onSuccess }: Props) {
     }
 
     return (
-        <section style={{ maxWidth: 480, margin: "0 auto" }}>
-            <h1>
+        <section style={{ maxWidth: 440, margin: "0 auto", paddingTop: 32 }}>
+            <span className="vault-emblem">
+                <Icon icon={mode === "setup" ? ShieldPlus : Lock} size={26} />
+            </span>
+            <span className="eyebrow">Secrets · Vault</span>
+            <h1 style={{ marginTop: 6 }}>
                 {mode === "setup"
                     ? "마스터 패스워드 설정"
-                    : "비밀번호 보관함 잠금해제"}
+                    : "보관함 잠금해제"}
             </h1>
-            <p className="muted">
+            <p className="muted" style={{ marginTop: 8 }}>
                 {mode === "setup"
                     ? "보관함 전체를 보호할 마스터 패스워드를 설정합니다. 최소 8자."
-                    : "마스터 패스워드를 입력해 보관함을 잠금해제합니다."}
+                    : "마스터 패스워드를 입력해 보관함을 엽니다."}
             </p>
 
-            <form onSubmit={handleSubmit} aria-busy={state === "verifying"}>
-                <label htmlFor="master">마스터 패스워드</label>
-                <input
-                    id="master"
-                    type="password"
-                    className="field-control"
-                    autoComplete="current-password"
-                    value={master}
-                    onChange={(e) => {
-                        setMaster(e.target.value)
-                        setState("typing")
-                        setErrorMessage(null)
-                    }}
-                    minLength={8}
-                    maxLength={256}
-                    required
-                    disabled={state === "verifying" || state === "rate-limited"}
-                    aria-invalid={state === "failed"}
-                    aria-describedby={errorMessage ? "master-error" : undefined}
-                />
+            <form
+                onSubmit={handleSubmit}
+                aria-busy={state === "verifying"}
+                style={{ marginTop: 24 }}
+            >
+                <div className="form-row">
+                    <label htmlFor="master">마스터 패스워드</label>
+                    <input
+                        id="master"
+                        type="password"
+                        className="field-control"
+                        autoComplete="current-password"
+                        value={master}
+                        onChange={(e) => {
+                            setMaster(e.target.value)
+                            setState("typing")
+                            setErrorMessage(null)
+                        }}
+                        minLength={8}
+                        maxLength={256}
+                        required
+                        disabled={
+                            state === "verifying" || state === "rate-limited"
+                        }
+                        aria-invalid={state === "failed"}
+                        aria-describedby={
+                            errorMessage ? "master-error" : undefined
+                        }
+                    />
+                </div>
 
                 {mode === "setup" && (
-                    <>
+                    <div className="form-row">
                         <label htmlFor="confirm">마스터 패스워드 확인</label>
                         <input
                             id="confirm"
@@ -110,13 +126,14 @@ export function UnlockScreen({ mode, onSuccess }: Props) {
                             required
                             disabled={state === "verifying"}
                         />
-                    </>
+                    </div>
                 )}
 
-                <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
+                <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
                     <button
                         type="submit"
                         className="btn"
+                        style={{ flex: 1 }}
                         disabled={
                             state === "verifying" || state === "rate-limited"
                         }
@@ -124,7 +141,7 @@ export function UnlockScreen({ mode, onSuccess }: Props) {
                         {state === "verifying"
                             ? "확인 중..."
                             : mode === "setup"
-                              ? "설정"
+                              ? "마스터 설정"
                               : "잠금해제"}
                     </button>
                 </div>

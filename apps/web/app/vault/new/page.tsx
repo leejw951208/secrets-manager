@@ -18,7 +18,10 @@ export default function NewVaultEntryPage() {
                     gap: 12,
                 }}
             >
-                <h1>새 항목 추가</h1>
+                <div style={{ display: "grid", gap: 4 }}>
+                    <span className="eyebrow">New Entry</span>
+                    <h1>새 항목 추가</h1>
+                </div>
                 <Link className="btn secondary" href="/vault">
                     ← 목록
                 </Link>

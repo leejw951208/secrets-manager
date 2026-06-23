@@ -57,27 +57,55 @@ export function CopyField({ label, value, sensitive }: Props) {
         }
     }
 
+    const masked = sensitive && !revealed
+
     return (
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ minWidth: 96 }} className="muted">
-                {label}
+        <div className="secret-plate">
+            <span className="secret-label">{label}</span>
+            <span
+                className={`secret-value${masked ? " masked" : revealed ? " revealed" : ""}`}
+            >
+                {masked ? MASK : value}
             </span>
-            <span style={{ fontFamily: "monospace", flex: 1 }}>
-                {sensitive && !revealed ? "••••••••" : value}
-            </span>
-            {sensitive && (
+            <span className="secret-actions">
+                {sensitive && (
+                    <button
+                        type="button"
+                        className="secret-btn"
+                        onClick={() => setRevealed((v) => !v)}
+                        aria-pressed={revealed}
+                    >
+                        {revealed ? "숨기기" : "보기"}
+                    </button>
+                )}
                 <button
                     type="button"
-                    className="btn"
-                    onClick={() => setRevealed((v) => !v)}
+                    className="secret-btn"
+                    onClick={handleCopy}
                 >
-                    {revealed ? "숨기기" : "보기"}
+                    복사
                 </button>
+            </span>
+
+            {remaining !== null && (
+                <div
+                    className="secret-drain"
+                    aria-label={`${remaining}초 후 클립보드 자동 삭제`}
+                >
+                    <span className="secret-drain-track">
+                        <span
+                            className="secret-drain-fill"
+                            style={{
+                                width: `${(remaining / (CLEAR_AFTER_MS / 1000)) * 100}%`,
+                            }}
+                        />
+                    </span>
+                    <span className="secret-drain-count" aria-hidden="true">
+                        {remaining}s
+                    </span>
+                </div>
             )}
-            <button type="button" className="btn" onClick={handleCopy}>
-                복사
-            </button>
-            {remaining !== null && <span className="muted">{remaining}s</span>}
+
             <span
                 role="status"
                 aria-live="polite"
@@ -88,3 +116,6 @@ export function CopyField({ label, value, sensitive }: Props) {
         </div>
     )
 }
+
+// 길이를 노출하지 않도록 고정 길이 마스크.
+const MASK = "•".repeat(10)

@@ -15,7 +15,10 @@ export default function VaultBackupPage() {
                     gap: 12,
                 }}
             >
-                <h1>백업·복원</h1>
+                <div style={{ display: "grid", gap: 4 }}>
+                    <span className="eyebrow">Backup · Restore</span>
+                    <h1>백업·복원</h1>
+                </div>
                 <Link className="btn secondary" href="/vault">
                     ← 보관함
                 </Link>

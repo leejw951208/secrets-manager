@@ -20,7 +20,10 @@ export default function VaultCategoriesPage() {
                     gap: 12,
                 }}
             >
-                <h1>카테고리</h1>
+                <div style={{ display: "grid", gap: 4 }}>
+                    <span className="eyebrow">Reference</span>
+                    <h1>카테고리</h1>
+                </div>
                 <Link className="btn secondary" href="/vault">
                     ← 보관함
                 </Link>
@@ -38,10 +41,15 @@ export default function VaultCategoriesPage() {
                         <section key={cat} className="card">
                             <h2
                                 className="section-title"
-                                style={{ marginTop: 0 }}
+                                style={{
+                                    marginTop: 0,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 8,
+                                }}
                             >
-                                {CATEGORY_LABELS[cat]}{" "}
-                                <span className="muted">({cat})</span>
+                                {CATEGORY_LABELS[cat]}
+                                <span className="cat-badge">{cat}</span>
                             </h2>
                             {fields.length === 0 ? (
                                 <p className="muted" style={{ margin: 0 }}>

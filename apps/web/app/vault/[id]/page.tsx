@@ -189,9 +189,12 @@ export default function VaultEntryDetailPage() {
                                 ))}
                             {typeof entry.payload?.memo === "string" &&
                                 entry.payload.memo && (
-                                    <div style={{ marginTop: 8 }}>
-                                        <div className="muted">메모</div>
-                                        <div style={{ whiteSpace: "pre-wrap" }}>
+                                    <div
+                                        className="secret-plate"
+                                        style={{ display: "block" }}
+                                    >
+                                        <div className="secret-label">메모</div>
+                                        <div className="secret-memo">
                                             {entry.payload.memo}
                                         </div>
                                     </div>
@@ -255,13 +258,9 @@ export default function VaultEntryDetailPage() {
 
 function DetailRow({ label, value }: { label: string; value: string }) {
     return (
-        <div style={{ display: "flex", gap: 12, alignItems: "baseline" }}>
-            <dt className="muted" style={{ minWidth: 96 }}>
-                {label}
-            </dt>
-            <dd style={{ margin: 0, fontWeight: 500, wordBreak: "break-word" }}>
-                {value}
-            </dd>
+        <div className="detail-row">
+            <dt>{label}</dt>
+            <dd>{value}</dd>
         </div>
     )
 }
