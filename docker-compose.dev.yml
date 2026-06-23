@@ -1,0 +1,30 @@
+# 개발용 스택. DB(PostgreSQL)만 도커로 띄운다.
+# api·web 은 호스트에서 직접 실행한다(pnpm dev / make dev). 운영(docker-compose.yml)과 분리.
+#
+# 실행:   docker compose -f docker-compose.dev.yml up -d
+# 종료:   docker compose -f docker-compose.dev.yml down   (-v 로 DB 볼륨까지 삭제)
+#
+# 호스트 api 는 .env.development 의 DATABASE_URL(127.0.0.1:5431)로 이 DB에 연결한다.
+name: secrets-manager-dev
+
+services:
+    db:
+        image: postgres:17-alpine
+        container_name: secrets-manager-dev-db
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: secrets
+            POSTGRES_PASSWORD: secrets
+            POSTGRES_DB: secrets_manager
+        ports:
+            - "127.0.0.1:5431:5432"
+        volumes:
+            - db-data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U secrets -d secrets_manager"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+volumes:
+    db-data:
