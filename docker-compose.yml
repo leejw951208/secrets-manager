@@ -1,4 +1,8 @@
-# 로컬 개발용 PostgreSQL. 앱은 추후 web·api·cloudflared 서비스로 확장한다.
+# 단일 서버 self-host 스택. postgres + api + web 는 기본으로 뜨고,
+# cloudflared(Tunnel)는 cloudflare 프로파일에서만 뜬다(아직 Cloudflare 미설정 상태 대비).
+#
+# 기본 실행:                docker compose up -d --build
+# Cloudflare 추가 후:        CLOUDFLARE_TUNNEL_TOKEN=... docker compose --profile cloudflare up -d --build
 services:
   postgres:
     image: postgres:17-alpine
@@ -17,6 +21,56 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    container_name: secrets-manager-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://secrets:secrets@postgres:5432/secrets_manager?schema=public
+      HOST: 0.0.0.0
+      PORT: 4000
+      # 배포 시 내 도메인으로 바꾼다.
+      CORS_ORIGIN: http://127.0.0.1:3000
+      VAULT_ALLOWED_ORIGINS: http://127.0.0.1:3000,http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      # Cloudflare Tunnel 사용 시 이 publish 는 제거하고 내부 네트워크로만 노출한다.
+      - "127.0.0.1:4000:4000"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+      args:
+        # 브라우저가 호출할 API 주소. Cloudflare 도메인 확정 후 이 값으로 재빌드한다.
+        NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:4000
+    container_name: secrets-manager-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:3000:3000"
+
+  # Cloudflare Tunnel. 토큰이 준비되면 cloudflare 프로파일로 띄운다.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: secrets-manager-cloudflared
+    restart: unless-stopped
+    profiles:
+      - cloudflare
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - web
+      - api
 
 volumes:
   postgres-data:

@@ -1,0 +1,17 @@
+# 빌드 컨텍스트에서 제외할 항목. node_modules·빌드 산출물은 이미지 안에서 재생성한다.
+**/node_modules
+**/dist
+**/.next
+**/generated
+**/coverage
+**/.turbo
+.git
+.github
+**/*.db
+**/.env
+**/.env.*
+!**/.env.example
+repomix-output.xml
+**/test-results
+**/playwright-report
+**/*.spec.ts-snapshots

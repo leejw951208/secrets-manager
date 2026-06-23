@@ -60,8 +60,9 @@ async function bootstrap() {
         next()
     })
 
+    // 기본은 로컬 웹 오리진. 배포 시 CORS_ORIGIN 환경 변수로 내 도메인을 지정한다.
     app.enableCors({
-        origin: "http://127.0.0.1:3000",
+        origin: process.env.CORS_ORIGIN ?? "http://127.0.0.1:3000",
         credentials: true,
     })
 
@@ -75,7 +76,10 @@ async function bootstrap() {
 
     app.useGlobalFilters(new HttpExceptionFilter())
 
-    await app.listen(4000, "127.0.0.1")
+    // 기본은 로컬 전용 127.0.0.1 바인딩. 컨테이너에선 HOST=0.0.0.0 으로 덮어쓴다.
+    const port = Number(process.env.PORT ?? 4000)
+    const host = process.env.HOST ?? "127.0.0.1"
+    await app.listen(port, host)
 }
 
 bootstrap()
