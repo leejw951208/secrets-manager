@@ -3,10 +3,6 @@ import { Module } from "@nestjs/common"
 import { ConfigModule } from "@nestjs/config"
 import { APP_GUARD } from "@nestjs/core"
 import { PrismaModule } from "./prisma/prisma.module"
-import { ExpensesModule } from "./expenses/expenses.module"
-import { OccurrencesModule } from "./occurrences/occurrences.module"
-import { SummaryModule } from "./summary/summary.module"
-import { ExportModule } from "./export/export.module"
 import { VaultModule } from "./vault/vault.module"
 import { AuthGuard } from "./auth/auth.guard"
 
@@ -14,10 +10,6 @@ import { AuthGuard } from "./auth/auth.guard"
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         PrismaModule,
-        ExpensesModule,
-        OccurrencesModule,
-        SummaryModule,
-        ExportModule,
         VaultModule,
     ],
     providers: [
