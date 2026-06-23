@@ -1,6 +1,6 @@
 # AGENTS.md
 ## 1. 이 프로젝트의 한 줄 설명
-Secrets Manager는 사이트별 비밀번호를 `사이트 → (카테고리) → 비밀번호` 구조로 보관하는 1인용 암호화 금고다. 제품 정의는 `docs/PRD-secrets-manager.md` 를 참조한다.
+Secrets Manager는 사이트별 비밀번호를 `사이트 → (카테고리) → 비밀번호` 구조로 보관하는 1인용 암호화 보관함이다. 제품 정의는 `docs/PRD-secrets-manager.md` 를 참조한다.
 
 ## 2. 건드리지 말 것
 - `node_modules/`, `dist/` — 빌드 산출물
