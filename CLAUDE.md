@@ -10,21 +10,17 @@ Secrets Manager는 사용자의 개인 비밀번호를 관리하는 서비스이
 - `.env.*` — 시크릿
 
 ## 3. 자주 쓰는 명령
-
 ```bash
-pnpm install                                           # 의존성 설치
-pnpm dev                                               # 웹 + API 개발 서버
-pnpm typecheck                                         # 변경 후 기본 검증
-pnpm lint                                              # ESLint
-pnpm test                                              # 전체 테스트
-pnpm --filter @secrets-manager/api run test:e2e               # API E2E
-pnpm --filter @secrets-manager/api exec prisma migrate dev    # DB 마이그레이션
-pnpm --filter @secrets-manager/api run prisma:generate        # schema.prisma 변경 후 필수
-pnpm --filter @secrets-manager/web run test:visual            # 시각 회귀 + 접근성
+pnpm install                                        # 의존성 설치
+make dev                                            # DB(도커) + 마이그레이션 + 웹·API 개발 서버
+make typecheck                                      # 변경 후 기본 검증
+make lint                                           # ESLint
+make test                                           # 전체 테스트
+make migrate                                        # DB 마이그레이션 (migrate dev)
+make generate                                       # schema.prisma 변경 후 필수
 ```
 
 ## 4. 의미 단위로 커밋
-
 - 사용자가 커밋을 요청한 경우에만 커밋한다.
 - 하나의 논리적 변경이 완료될 때마다 커밋한다.
 - 좋은 예. "auth 미들웨어 추가"
