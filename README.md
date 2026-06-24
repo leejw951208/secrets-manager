@@ -114,7 +114,7 @@ docker exec secrets-manager-postgres pg_dump -U secrets secrets_manager \
 
 ## 비밀번호 보관함
 
-사이트별 비밀번호를 `사이트 → (카테고리) → 비밀번호` 구조로 보관한다. 인증은 passkey(생체·기기), 본문 암호화는 WebAuthn PRF로 도출한 키(AES-256-GCM)로 한다. 암호화 키는 서버에 저장하지 않고 메모리에만 두며, 분실 대비로 복구코드가 키를 추가 래핑한다. 모든 항목은 암호화되어 PostgreSQL에 저장된다.
+사이트별 비밀번호를 `사이트 → (카테고리) → 비밀번호` 구조로 보관한다. 각 항목은 제목 + 사용자가 직접 구성한 필드(이름·값) 여러 개 + 메모로 이루어지며, 필드 집합·메모는 하나의 payload로 직렬화돼 암호화된다(제목만 평문). 인증은 passkey(생체·기기), 본문 암호화는 WebAuthn PRF로 도출한 키(AES-256-GCM)로 한다. 암호화 키는 서버에 저장하지 않고 메모리에만 두며, 분실 대비로 복구코드가 키를 추가 래핑한다. 모든 항목은 암호화되어 PostgreSQL에 저장된다.
 
 ### API 스모크 테스트
 
@@ -125,8 +125,10 @@ passkey 등록·인증(`/auth/*`)은 WebAuthn 의식(challenge·서명·PRF)을 
 SITE=$(curl -s -b /tmp/c.txt -H 'Origin: http://localhost:3000' -H 'X-Vault-Request: 1' \
   -H 'Content-Type: application/json' -d '{"label":"우리은행"}' http://localhost:4000/sites | jq -r .id)
 SECRET=$(curl -s -b /tmp/c.txt -H 'Origin: http://localhost:3000' -H 'X-Vault-Request: 1' \
-  -H 'Content-Type: application/json' -d "{\"siteId\":\"$SITE\",\"label\":\"로그인\",\"value\":\"pw-1234\"}" http://localhost:4000/secrets | jq -r .id)
-curl -s -b /tmp/c.txt http://localhost:4000/secrets/$SECRET   # value 복호화 확인
+  -H 'Content-Type: application/json' \
+  -d "{\"siteId\":\"$SITE\",\"label\":\"로그인\",\"payload\":{\"fields\":[{\"name\":\"아이디\",\"value\":\"my-id\"},{\"name\":\"비밀번호\",\"value\":\"pw-1234\"}],\"memo\":\"\"}}" \
+  http://localhost:4000/secrets | jq -r .id)
+curl -s -b /tmp/c.txt http://localhost:4000/secrets/$SECRET   # payload 복호화 확인
 ```
 
 복구코드 5회 연속 실패는 60초 잠금이 발동한다. passkey 인증 자체는 인증기 차원에서 무차별 대입을 막는다.
