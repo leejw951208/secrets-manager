@@ -8,32 +8,31 @@ datasource db {
   provider = "postgresql"
 }
 
-// 단일 사용자 마스터 패스워드의 KDF 파라미터와 verifyToken 을 보관한다.
-// id 는 항상 "singleton" 고정값으로 단일 행을 강제한다.
-model VaultMaster {
-  id                String   @id @default("singleton")
-  kdfVersion        Int      @default(1)
-  kdfAlgorithm      String   @default("argon2id")
-  kdfMemoryKiB      Int      @default(65536)
-  kdfIterations     Int      @default(3)
-  kdfParallelism    Int      @default(1)
-  salt              Bytes
-  verifyIv          Bytes
-  verifyCiphertext  Bytes
-  verifyAuthTag     Bytes
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+// WebAuthn passkey 자격증명 + PRF 로 래핑한 vault 키. 다중 기기 등록을 허용한다.
+model WebauthnCredential {
+  id           String    @id @default(cuid())
+  credentialId Bytes     @unique // raw credential id
+  publicKey    Bytes // COSE public key
+  counter      BigInt    @default(0)
+  transports   String[]
+  deviceType   String?
+  backedUp     Boolean   @default(false)
+  prfSalt      Bytes // 이 자격증명의 PRF eval salt
+  wrappedVkPrf Bytes // packed: iv||ct||tag
+  nickname     String?
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+  updatedAt    DateTime  @updatedAt
 }
 
-// 6자리 PIN 접속 인증. id 는 "singleton" 고정으로 단일 행을 강제한다.
-// pinHash 는 Argon2id 해시이며 PIN 은 암호화 키로 사용하지 않는다.
-model PinCredential {
-  id        String    @id @default("singleton")
-  pinHash   String
-  failCount Int       @default(0)
-  lockUntil DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+// 복구코드로 래핑한 vault 키(단일 행). 기기 분실 시 break-glass 용도이다.
+model RecoveryWrap {
+  id          String   @id @default("singleton")
+  rcSalt      Bytes
+  wrappedVkRc Bytes // packed: iv||ct||tag
+  verifier    Bytes // SHA-256(복구코드 바이트). 복구 시점 상수시간 비교용. HKDF 키/평문 미보유.
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // 비밀번호를 묶는 최상위 단위. label 은 검색용 평문이고 icon 은 선택적이다.

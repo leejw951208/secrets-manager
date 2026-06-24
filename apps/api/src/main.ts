@@ -1,9 +1,13 @@
 // NestJS 진입점. localhost:4000 바인딩과 CORS, 검증 파이프, 예외 필터를 설정한다.
 import { NestFactory } from "@nestjs/core"
 import { ValidationPipe, Logger } from "@nestjs/common"
+import type { NestExpressApplication } from "@nestjs/platform-express"
 import type { NextFunction, Request, Response } from "express"
 import { AppModule } from "./app.module"
 import { HttpExceptionFilter } from "./common/http-exception.filter"
+
+// 요청 본문 크기 상한. import 등 대용량 페이로드의 메모리 고갈(M-2)을 막는다.
+const BODY_LIMIT = process.env.BODY_LIMIT ?? "5mb"
 
 async function bootstrap() {
     // DATABASE_URL 누락 시 명시적 한국어 에러로 즉시 종료한다.
@@ -16,8 +20,11 @@ async function bootstrap() {
         process.exit(1)
     }
 
-    const app = await NestFactory.create(AppModule)
+    const app = await NestFactory.create<NestExpressApplication>(AppModule)
     app.getHttpAdapter().getInstance().disable("x-powered-by")
+    // 명시적 body limit 으로 기본값에 의존하지 않는다(M-2 DoS 방어).
+    app.useBodyParser("json", { limit: BODY_LIMIT })
+    app.useBodyParser("urlencoded", { extended: true, limit: BODY_LIMIT })
     app.use((_req: Request, res: Response, next: NextFunction) => {
         res.setHeader(
             "Content-Security-Policy",

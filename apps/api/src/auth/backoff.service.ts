@@ -1,9 +1,9 @@
-// 잘못된 마스터 입력에 대한 5회/60초 backoff 를 관리한다. 단일 사용자라 글로벌 카운터 1개면 충분.
+// 로그인 실패 백오프. 단일 사용자라 글로벌 카운터 1개로 5회/60초를 관리한다.
 import { Injectable } from "@nestjs/common"
-import { BACKOFF_DURATION_MS, MAX_UNLOCK_FAILURES } from "./vault.types"
+import { BACKOFF_DURATION_MS, MAX_LOGIN_FAILURES } from "./auth.types"
 
 @Injectable()
-export class VaultBackoffService {
+export class BackoffService {
     private failureCount = 0
     private blockedUntil = 0
 
@@ -22,7 +22,7 @@ export class VaultBackoffService {
 
     recordFailure(): void {
         this.failureCount += 1
-        if (this.failureCount >= MAX_UNLOCK_FAILURES) {
+        if (this.failureCount >= MAX_LOGIN_FAILURES) {
             this.blockedUntil = Date.now() + BACKOFF_DURATION_MS
         }
     }
