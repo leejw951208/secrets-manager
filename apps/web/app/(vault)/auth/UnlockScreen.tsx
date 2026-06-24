@@ -1,0 +1,249 @@
+"use client"
+// 잠금해제 화면. passkey 로그인으로 PRF→VK 언랩하거나, 복구코드로 VK 확보 후 새 passkey 를 재등록한다.
+import { useState } from "react"
+import { KeyRound, LifeBuoy } from "lucide-react"
+import { Icon } from "@/components/Icon"
+import {
+    getLoginOptions,
+    getRegisterOptions,
+    postLoginVerify,
+    postRecoveryVerify,
+    postRegisterVerify,
+} from "@/lib/vault-client"
+import { isApiError } from "@/lib/api-error"
+import {
+    fromBase64Url,
+    isValidRecoveryLength,
+    parseRecoveryCode,
+    randomSalt,
+    toBase64Url,
+    unwrapVkWithPrf,
+    unwrapVkWithRecovery,
+    wrapVkWithPrf,
+} from "@/lib/vault-crypto"
+import {
+    CeremonyCancelledError,
+    PrfUnsupportedError,
+    authenticatePasskey,
+    registerPasskey,
+    supportsWebAuthn,
+} from "@/lib/webauthn"
+
+type Mode = "passkey" | "recovery"
+type Busy = "idle" | "unlocking" | "recovering"
+
+interface Props {
+    onUnlocked: (vaultKey: CryptoKey) => void
+    onReregistered: (vaultKey: CryptoKey) => void
+}
+
+export function UnlockScreen({ onUnlocked, onReregistered }: Props) {
+    const [mode, setMode] = useState<Mode>("passkey")
+    const [busy, setBusy] = useState<Busy>("idle")
+    const [error, setError] = useState<string | null>(null)
+    const [retryAfter, setRetryAfter] = useState<number | null>(null)
+    const [recoveryInput, setRecoveryInput] = useState("")
+
+    // passkey 로그인 → PRF 출력으로 wrappedVkPrf 언랩 → VK 확보.
+    async function handlePasskeyUnlock() {
+        if (!supportsWebAuthn()) {
+            setError("이 브라우저는 passkey(WebAuthn)를 지원하지 않습니다.")
+            return
+        }
+        setBusy("unlocking")
+        setError(null)
+        setRetryAfter(null)
+        try {
+            const options = await getLoginOptions()
+            const { response, prfOutput } = await authenticatePasskey(options)
+            if (!prfOutput) throw new PrfUnsupportedError()
+
+            const { wrappedVkPrf, prfSalt } = await postLoginVerify(response)
+            const vaultKey = await unwrapVkWithPrf(
+                fromBase64Url(wrappedVkPrf),
+                prfOutput,
+                fromBase64Url(prfSalt),
+            )
+            onUnlocked(vaultKey)
+        } catch (e) {
+            handleFailure(e)
+            setBusy("idle")
+        }
+    }
+
+    // 복구코드 제출(recovery/verify) → wrap 수신 + 복구 세션 → 로컬 언랩 → VK 확보 → 새 passkey 재등록.
+    async function handleRecover() {
+        const recoveryBytes = parseRecoveryCode(recoveryInput)
+        // L-2. 정확히 160bit(20B)인지 조기 검증해 잘못된 입력을 서버 전송 전에 거른다.
+        if (!isValidRecoveryLength(recoveryBytes)) {
+            setError("복구코드 형식이 올바르지 않습니다. 32자 코드를 확인하세요.")
+            return
+        }
+        if (!supportsWebAuthn()) {
+            setError("이 브라우저는 passkey(WebAuthn)를 지원하지 않습니다.")
+            return
+        }
+        setBusy("recovering")
+        setError(null)
+        setRetryAfter(null)
+        try {
+            // 와이어 포맷(interop 확정): 복구코드 문자열을 디코드한 20바이트를 base64url 로 보낸다.
+            // 서버는 Base32 를 모르고 base64url 디코드 후 SHA-256→verifier 상수시간 비교(백오프).
+            const wrap = await postRecoveryVerify(toBase64Url(recoveryBytes))
+            // 받은 wrap 을 로컬에서 복구코드로 언랩(GCM 인증). 여기서 실패하면 데이터 손상이다.
+            const vaultKey = await unwrapVkWithRecovery(
+                fromBase64Url(wrap.wrappedVkRc),
+                recoveryBytes,
+                fromBase64Url(wrap.rcSalt),
+            )
+
+            // 복구 세션을 가진 상태로 새 passkey 를 등록한다(recovery 재발급 생략).
+            const options = await getRegisterOptions()
+            const { response, prfOutput } = await registerPasskey(options)
+            if (!prfOutput) throw new PrfUnsupportedError()
+
+            const prfSalt = randomSalt()
+            const wrappedVkPrf = await wrapVkWithPrf(vaultKey, prfOutput, prfSalt)
+            await postRegisterVerify({
+                response,
+                prfSalt: toBase64Url(prfSalt),
+                wrappedVkPrf: toBase64Url(wrappedVkPrf),
+            })
+
+            onReregistered(vaultKey)
+        } catch (e) {
+            handleFailure(e)
+            setBusy("idle")
+        }
+    }
+
+    function handleFailure(e: unknown) {
+        if (isApiError(e) && e.code === "RATE_LIMITED") {
+            setRetryAfter(e.retryAfterSeconds ?? 60)
+            setError(e.message)
+            return
+        }
+        // 복구 모드에서 401=verifier 비교 실패(복구코드 불일치), 404=복구 정보 없음.
+        if (mode === "recovery" && isApiError(e)) {
+            if (e.status === 401) {
+                setError("복구코드가 일치하지 않습니다.")
+                return
+            }
+            if (e.status === 404) {
+                setError("등록된 복구 정보가 없습니다.")
+                return
+            }
+        }
+        if (e instanceof CeremonyCancelledError) {
+            setError(e.message)
+            return
+        }
+        if (e instanceof PrfUnsupportedError) {
+            setError(e.message)
+            return
+        }
+        if (isApiError(e)) {
+            setError(e.message)
+            return
+        }
+        // 로컬 언랩(GCM) 실패 = 코드는 길이 맞지만 내용 불일치/데이터 손상.
+        if (e instanceof Error && e.name === "OperationError") {
+            setError("복구코드가 일치하지 않습니다.")
+            return
+        }
+        setError(e instanceof Error ? e.message : "잠금해제에 실패했습니다.")
+    }
+
+    return (
+        <section style={{ maxWidth: 440, margin: "0 auto", paddingTop: 32 }}>
+            <span className="vault-emblem">
+                <Icon icon={mode === "passkey" ? KeyRound : LifeBuoy} size={26} />
+            </span>
+            <span className="eyebrow">Secrets · Vault</span>
+            <h1 style={{ marginTop: 6 }}>
+                {mode === "passkey" ? "보관함 잠금해제" : "복구코드로 접근"}
+            </h1>
+            <p className="muted" style={{ marginTop: 8 }}>
+                {mode === "passkey"
+                    ? "passkey로 인증하면 보관함이 열립니다."
+                    : "기기를 분실했나요? 복구코드를 입력하고 이 기기에 새 passkey를 등록하세요."}
+            </p>
+
+            {mode === "passkey" ? (
+                <button
+                    type="button"
+                    className="btn"
+                    style={{ width: "100%", marginTop: 24 }}
+                    onClick={handlePasskeyUnlock}
+                    disabled={busy !== "idle" || retryAfter !== null}
+                    aria-busy={busy === "unlocking"}
+                >
+                    {busy === "unlocking"
+                        ? "인증 중..."
+                        : "passkey로 잠금해제"}
+                </button>
+            ) : (
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault()
+                        if (busy === "idle") void handleRecover()
+                    }}
+                    style={{ marginTop: 24 }}
+                >
+                    <div className="form-row">
+                        <label htmlFor="recovery-code">복구코드</label>
+                        <input
+                            id="recovery-code"
+                            type="text"
+                            className="field-control"
+                            autoComplete="off"
+                            autoCapitalize="characters"
+                            spellCheck={false}
+                            placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XX"
+                            value={recoveryInput}
+                            onChange={(e) => {
+                                setRecoveryInput(e.target.value)
+                                setError(null)
+                            }}
+                            disabled={busy !== "idle"}
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        className="btn"
+                        style={{ width: "100%", marginTop: 8 }}
+                        disabled={busy !== "idle"}
+                        aria-busy={busy === "recovering"}
+                    >
+                        {busy === "recovering"
+                            ? "복구 중..."
+                            : "복구하고 새 passkey 등록"}
+                    </button>
+                </form>
+            )}
+
+            {error && (
+                <div role="alert" className="error-box" style={{ marginTop: 16 }}>
+                    {error}
+                    {retryAfter !== null && (
+                        <> {retryAfter}초 후 다시 시도할 수 있습니다.</>
+                    )}
+                </div>
+            )}
+
+            <button
+                type="button"
+                className="btn secondary"
+                style={{ width: "100%", marginTop: 16 }}
+                onClick={() => {
+                    setMode((m) => (m === "passkey" ? "recovery" : "passkey"))
+                    setError(null)
+                    setRetryAfter(null)
+                }}
+                disabled={busy !== "idle"}
+            >
+                {mode === "passkey" ? "복구코드로 접근" : "passkey로 돌아가기"}
+            </button>
+        </section>
+    )
+}

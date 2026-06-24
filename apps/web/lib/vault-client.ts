@@ -1,5 +1,12 @@
-// vault 전용 API 클라이언트. 모든 쓰기 요청에 X-Vault-Request 헤더를 자동 부착한다.
+// vault 전용 API 클라이언트. /auth/* 인증과 store(/sites,/categories,/secrets) 엔드포인트를 호출한다.
+// 모든 쓰기 요청에 X-Vault-Request 헤더를 자동 부착한다(CSRF).
 import axios, { AxiosError, AxiosInstance } from "axios"
+import type {
+    AuthenticationResponseJSON,
+    PublicKeyCredentialCreationOptionsJSON,
+    PublicKeyCredentialRequestOptionsJSON,
+    RegistrationResponseJSON,
+} from "@simplewebauthn/browser"
 import { ApiError } from "./api-error"
 
 const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000"
@@ -18,119 +25,284 @@ vaultClient.interceptors.response.use(
     (error: AxiosError) => Promise.reject(ApiError.fromAxios(error)),
 )
 
-export type VaultCategory =
-    | "BANK"
-    | "CARD"
-    | "SECURITIES"
-    | "SHOPPING"
-    | "OTHER"
+// ─── 인증(/auth) ───────────────────────────────────────────────
 
-export type VaultStatus =
-    | { state: "setup-required" }
-    | { state: "locked" }
-    | { state: "unlocked"; idleSecondsRemaining?: number }
-
-export type VaultStatusView =
-    | { state: "loading" }
-    | { state: "error"; message: string }
-    | VaultStatus
-
-export interface VaultEntry {
-    id: string
-    category: VaultCategory
-    label: string
-    createdAt: string
-    updatedAt: string
-    payload?: Record<string, unknown>
+// 서버 인증 상태. registered=등록 여부, authenticated=세션(서버 측) 유효 여부.
+export interface AuthStatus {
+    registered: boolean
+    authenticated: boolean
 }
 
-export interface CreateEntryInput extends Record<string, unknown> {
-    category: VaultCategory
-    label: string
+// 첫 등록 시 register/verify 로 보내는 복구 래핑. verifier=SHA-256(복구코드 바이트)(H-1).
+export interface RecoveryRegisterPayload {
+    rcSalt: string
+    wrappedVkRc: string
+    verifier: string
 }
 
-export async function getStatus(): Promise<VaultStatus> {
-    const { data } = await vaultClient.get<VaultStatus>("/vault/status")
+// recovery/verify 성공 응답. 복구 래핑(언랩용). verifier 는 서버 내부 비교용이라 미반환.
+export interface RecoveryWrapPayload {
+    rcSalt: string
+    wrappedVkRc: string
+}
+
+// register/verify 요청 본문. 첫 등록은 recovery 필수, 기기 추가/복구 재등록은 생략.
+export interface RegisterVerifyInput {
+    response: RegistrationResponseJSON
+    prfSalt: string
+    wrappedVkPrf: string
+    nickname?: string
+    recovery?: RecoveryRegisterPayload
+}
+
+// login/verify 응답. 사용된 credential 기준 PRF 래핑 블롭과 salt.
+export interface LoginVerifyResult {
+    wrappedVkPrf: string
+    prfSalt: string
+}
+
+export async function getAuthStatus(): Promise<AuthStatus> {
+    const { data } = await vaultClient.get<AuthStatus>("/auth/status")
     return data
 }
 
-export async function setupMaster(master: string): Promise<void> {
-    await vaultClient.post("/vault/setup", { master })
+export async function getRegisterOptions(): Promise<PublicKeyCredentialCreationOptionsJSON> {
+    const { data } = await vaultClient.post<{
+        options: PublicKeyCredentialCreationOptionsJSON
+    }>("/auth/register/options", {})
+    return data.options
 }
 
-export async function unlockMaster(master: string): Promise<void> {
-    await vaultClient.post("/vault/unlock", { master })
+export async function postRegisterVerify(
+    input: RegisterVerifyInput,
+): Promise<void> {
+    await vaultClient.post("/auth/register/verify", input)
 }
 
-export async function lockVault(): Promise<void> {
-    await vaultClient.post("/vault/lock")
+export async function getLoginOptions(): Promise<PublicKeyCredentialRequestOptionsJSON> {
+    const { data } = await vaultClient.post<{
+        options: PublicKeyCredentialRequestOptionsJSON
+    }>("/auth/login/options", {})
+    return data.options
 }
 
-export async function listEntries(
-    params: { category?: VaultCategory; q?: string } = {},
-): Promise<VaultEntry[]> {
-    const { data } = await vaultClient.get<VaultEntry[]>("/vault/entries", {
-        params,
-    })
-    return data
-}
-
-export async function getEntry(id: string): Promise<VaultEntry> {
-    const { data } = await vaultClient.get<VaultEntry>(`/vault/entries/${id}`)
-    return data
-}
-
-export async function createEntry(
-    input: CreateEntryInput,
-): Promise<VaultEntry> {
-    const { data } = await vaultClient.post<VaultEntry>("/vault/entries", input)
-    return data
-}
-
-export async function updateEntry(
-    id: string,
-    input: CreateEntryInput,
-): Promise<VaultEntry> {
-    const { data } = await vaultClient.patch<VaultEntry>(
-        `/vault/entries/${id}`,
-        input,
+export async function postLoginVerify(
+    response: AuthenticationResponseJSON,
+): Promise<LoginVerifyResult> {
+    const { data } = await vaultClient.post<LoginVerifyResult>(
+        "/auth/login/verify",
+        { response },
     )
     return data
 }
 
-export async function deleteEntry(id: string): Promise<void> {
-    await vaultClient.delete(`/vault/entries/${id}`)
+// 복구코드를 서버에 제출해 검증한다(H-1). 성공 시 복구 래핑 반환 + 단기 복구 세션 쿠키 발급.
+// recoveryCode 는 interop 확정 와이어 포맷이다. 복구코드 문자열을 디코드한 20바이트의 base64url(원문 아님).
+// 서버는 base64url 디코드 후 SHA-256→verifier 상수시간 비교. 실패 401, 미존재 404, 한도 초과 429 RATE_LIMITED.
+export async function postRecoveryVerify(
+    recoveryCode: string,
+): Promise<RecoveryWrapPayload> {
+    const { data } = await vaultClient.post<RecoveryWrapPayload>(
+        "/auth/recovery/verify",
+        { recoveryCode },
+    )
+    return data
 }
 
-export async function exportVault(): Promise<Blob> {
-    const { data } = await vaultClient.post<Blob>("/vault/export", undefined, {
+export async function postLogout(): Promise<void> {
+    await vaultClient.post("/auth/logout", {})
+}
+
+// ─── store: 사이트(/sites) ─────────────────────────────────────
+
+export interface Site {
+    id: string
+    label: string
+    icon?: string | null
+    createdAt: string
+    updatedAt: string
+}
+
+export interface CreateSiteInput {
+    label: string
+    icon?: string
+}
+
+export async function listSites(): Promise<Site[]> {
+    const { data } = await vaultClient.get<Site[]>("/sites")
+    return data
+}
+
+export async function getSite(id: string): Promise<Site> {
+    const { data } = await vaultClient.get<Site>(`/sites/${id}`)
+    return data
+}
+
+export async function createSite(input: CreateSiteInput): Promise<Site> {
+    const { data } = await vaultClient.post<Site>("/sites", input)
+    return data
+}
+
+export async function updateSite(
+    id: string,
+    input: Partial<CreateSiteInput>,
+): Promise<Site> {
+    const { data } = await vaultClient.patch<Site>(`/sites/${id}`, input)
+    return data
+}
+
+export async function deleteSite(id: string): Promise<void> {
+    await vaultClient.delete(`/sites/${id}`)
+}
+
+// ─── store: 카테고리(/categories) ──────────────────────────────
+
+export interface Category {
+    id: string
+    siteId: string
+    label: string
+    createdAt: string
+    updatedAt: string
+}
+
+export async function listCategories(siteId: string): Promise<Category[]> {
+    const { data } = await vaultClient.get<Category[]>("/categories", {
+        params: { siteId },
+    })
+    return data
+}
+
+export async function createCategory(
+    siteId: string,
+    label: string,
+): Promise<Category> {
+    const { data } = await vaultClient.post<Category>("/categories", {
+        siteId,
+        label,
+    })
+    return data
+}
+
+export async function updateCategory(
+    id: string,
+    label: string,
+): Promise<Category> {
+    const { data } = await vaultClient.patch<Category>(`/categories/${id}`, {
+        label,
+    })
+    return data
+}
+
+export async function deleteCategory(id: string): Promise<void> {
+    await vaultClient.delete(`/categories/${id}`)
+}
+
+// ─── store: 시크릿(/secrets) ───────────────────────────────────
+
+// 목록 응답(메타만). 본문 블롭은 포함하지 않는다.
+export interface SecretMeta {
+    id: string
+    siteId: string
+    categoryId: string | null
+    label: string
+    createdAt: string
+    updatedAt: string
+}
+
+// 상세 응답(암호문 블롭 포함). iv/ciphertext/authTag 는 base64url.
+export interface SecretDetail extends SecretMeta {
+    iv: string
+    ciphertext: string
+    authTag: string
+}
+
+// 시크릿 생성·수정 입력. label 은 평문, 본문은 클라이언트에서 seal 한 블롭.
+export interface SecretWriteInput {
+    siteId: string
+    categoryId?: string | null
+    label: string
+    iv: string
+    ciphertext: string
+    authTag: string
+}
+
+export async function listSecrets(
+    siteId: string,
+    categoryId?: string,
+): Promise<SecretMeta[]> {
+    const { data } = await vaultClient.get<SecretMeta[]>("/secrets", {
+        params: categoryId ? { siteId, categoryId } : { siteId },
+    })
+    return data
+}
+
+export async function getSecret(id: string): Promise<SecretDetail> {
+    const { data } = await vaultClient.get<SecretDetail>(`/secrets/${id}`)
+    return data
+}
+
+export async function createSecret(
+    input: SecretWriteInput,
+): Promise<SecretMeta> {
+    const { data } = await vaultClient.post<SecretMeta>("/secrets", input)
+    return data
+}
+
+export async function updateSecret(
+    id: string,
+    input: Partial<Omit<SecretWriteInput, "siteId">>,
+): Promise<SecretMeta> {
+    const { data } = await vaultClient.patch<SecretMeta>(`/secrets/${id}`, input)
+    return data
+}
+
+export async function deleteSecret(id: string): Promise<void> {
+    await vaultClient.delete(`/secrets/${id}`)
+}
+
+// 라벨 검색. 메타만 반환한다.
+export async function searchSecrets(q: string): Promise<SecretMeta[]> {
+    const { data } = await vaultClient.get<SecretMeta[]>("/search", {
+        params: { q },
+    })
+    return data
+}
+
+// ─── 백업/복원(/store) ─────────────────────────────────────────
+
+export type ImportMode = "reject" | "skip" | "replace"
+
+// 행 유형별 처리 건수. 서버 응답 shape(backup.service.ts) 과 동일.
+export interface ImportCounts {
+    created: number
+    skipped: number
+    replaced: number
+}
+
+// import 응답은 사이트/카테고리/비밀번호 각각의 처리 건수를 중첩으로 돌려준다.
+export interface ImportResult {
+    sites: ImportCounts
+    categories: ImportCounts
+    secrets: ImportCounts
+}
+
+// 전체 행(암호문 블롭 포함) JSON 을 그대로 받는다(E2E 패스스루).
+export async function exportStore(): Promise<Blob> {
+    const { data } = await vaultClient.get<Blob>("/store/export", {
         responseType: "blob",
     })
     return data
 }
 
-export async function importVault(
-    containerBase64: string,
-    master: string,
-    mode: "reject" | "skip" | "replace" = "reject",
-): Promise<{ imported: number; skipped: number; replaced: number }> {
-    const { data } = await vaultClient.post(
-        "/vault/import",
-        { container: containerBase64, master },
+// 백업 JSON 을 업로드한다. 서버는 복호화하지 않고 행만 수용한다.
+export async function importStore(
+    payload: unknown,
+    mode: ImportMode = "reject",
+): Promise<ImportResult> {
+    const { data } = await vaultClient.post<ImportResult>(
+        "/store/import",
+        payload,
         { params: { mode } },
     )
-    return data
-}
-
-export async function rekeyVault(
-    currentMaster: string,
-    newMaster?: string,
-    newKdfVersion?: number,
-): Promise<{ rotated: number; kdfVersion: number }> {
-    const { data } = await vaultClient.post("/vault/rekey", {
-        currentMaster,
-        ...(newMaster !== undefined ? { newMaster } : {}),
-        ...(newKdfVersion !== undefined ? { newKdfVersion } : {}),
-    })
     return data
 }
