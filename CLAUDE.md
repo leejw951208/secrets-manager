@@ -9,18 +9,19 @@
 - `apps/api/prisma/migrations/` — 기존 파일 수정 대신 새 migration 생성
 - `.env.*` — 시크릿
 
-## 3. 자주 쓰는 명령
+## 3. 금지 명령어
+- `rm`
+
+## 4. 자주 쓰는 명령
 ```bash
 pnpm install                                        # 의존성 설치
 make dev-up                                         # DB(도커) + 마이그레이션 + 웹·API 개발 서버
 make typecheck                                      # 변경 후 기본 검증
 make lint                                           # ESLint
 make test                                           # 전체 테스트
-make dev-migrate                                    # DB 마이그레이션 (migrate dev)
-make dev-generate                                   # schema.prisma 변경 후 필수
 ```
 
-## 4. 의미 단위로 커밋
+## 5. 의미 단위로 커밋
 - 사용자가 커밋을 요청한 경우에만 커밋한다.
 - 하나의 논리적 변경이 완료될 때마다 커밋한다.
 - 좋은 예. "auth 미들웨어 추가"
