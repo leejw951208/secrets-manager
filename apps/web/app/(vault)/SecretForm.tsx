@@ -45,7 +45,7 @@ export function SecretForm({ siteId, initial, onSuccess, onCancel }: Props) {
     const [rows, setRows] = useState<FieldRow[]>(
         initial && initial.fields.length > 0
             ? initial.fields.map((f) => makeRow(f))
-            : [makeRow({ name: "아이디", value: "" }), makeRow({ name: "비밀번호", value: "" })],
+            : [makeRow()],
     )
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
