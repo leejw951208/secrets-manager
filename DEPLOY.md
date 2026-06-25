@@ -103,15 +103,17 @@ Host ssh.DOMAIN
 
 ```bash
 docker network create daeoebi-net          # 1회: 두 스택이 공유할 외부 네트워크
-make prod-up                               # 앱 스택: postgres·api·web
+echo $GHCR_PAT | docker login ghcr.io -u leejw951208 --password-stdin   # 1회: GHCR 이미지 pull 권한
+make prod-deploy                           # 앱 스택: GHCR 이미지 pull + 기동 (postgres·api·web)
 make tunnel-up                             # 터널 스택: cloudflared (별도 프로젝트)
-docker compose ps                          # 앱 상태
+make prod-ps                               # 앱 상태
 make tunnel-logs                           # 터널 엣지 연결 로그
 ```
 
 `https://DOMAIN` 접속 → passkey 등록 흐름 확인.
 
-> 앱 재배포는 `git pull && make prod-up` — **터널은 건드리지 않으므로 SSH 유지**. 터널만 재시작은 `make tunnel-restart`.
+> 앱 재배포는 `git pull && make prod-deploy` — CI 가 빌드한 이미지를 pull 만 하므로 **1코어 VPS 에서도 빌드 부하가 없다**. **터널은 건드리지 않으므로 SSH 유지**. 터널만 재시작은 `make tunnel-restart`.
+> 서버에서 직접 빌드해야 할 때(CI 미사용·핫픽스)만 `make prod-up` 폴백을 쓴다.
 > 도메인을 바꿔도 web 빌드 인자 `NEXT_PUBLIC_API_BASE_URL=/api` 는 그대로 둔다(상대경로 same-origin).
 
 ---
@@ -140,10 +142,33 @@ rclone cat r2:daeoebi-backups/db/<파일>.sql.gz | gunzip \
 
 ---
 
+## CI 빌드 (GitHub Actions → GHCR)
+
+서버(1코어 VPS)에서 빌드하지 않는다. `main` 푸시 시 `.github/workflows/build.yml` 이
+GitHub 러너에서 api·web 이미지를 빌드해 GHCR(`ghcr.io/leejw951208/daeoebi-{api,web}`)에 올린다.
+
+- 태그: `latest` + 커밋 SHA. buildx 캐시(type=gha)로 의존성 레이어 재사용.
+- 서버는 `make prod-deploy` 로 `latest` 를 pull 만 한다(빌드 0).
+- 워크플로 권한은 `GITHUB_TOKEN`(packages: write)으로 충분 — 별도 시크릿 불필요.
+
+서버 1회 준비 — GHCR 이미지를 pull 하려면 로그인이 필요하다(패키지가 private 인 경우).
+
+```bash
+# read:packages 스코프의 PAT(classic) 발급 후
+echo <GHCR_PAT> | docker login ghcr.io -u leejw951208 --password-stdin
+```
+
+> 패키지를 GitHub 에서 public 으로 바꾸면 서버 로그인 없이 pull 된다.
+
+---
+
 ## 운영 명령 (Makefile)
 
 ```bash
-make prod-up        # 빌드 + 기동
+make prod-deploy    # GHCR 이미지 pull + 기동 (권장, 서버 빌드 없음)
+make prod-deploy-api  # api 만 pull + 재기동
+make prod-deploy-web  # web 만 pull + 재기동
+make prod-up        # 서버에서 직접 빌드 + 기동 (폴백)
 make prod-down      # 종료(데이터 유지)
 make prod-logs      # 로그 추적
 make prod-ps        # 상태

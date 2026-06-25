@@ -3,8 +3,9 @@
 # 앱 재배포·중단·크래시와 무관하게 터널·SSH 가 유지된다. 두 스택은 외부 네트워크 daeoebi-net 을 공유한다(DEPLOY.md).
 #
 # 사전 준비:  docker network create daeoebi-net (1회)  &&  cp apps/api/.env.example apps/api/.env.production  &&  [운영 환경] 블록 값 채우기
-# 실행:       make prod-up        (= docker compose --env-file apps/api/.env.production up -d --build)
-# 갱신:       git pull && make prod-up
+# 실행(권장): make prod-deploy     (CI 가 GHCR 에 올린 이미지를 pull 해 기동 — 서버에서 빌드 안 함)
+# 실행(폴백): make prod-up         (= docker compose --env-file apps/api/.env.production up -d --build, 서버에서 직접 빌드)
+# 갱신:       git pull && make prod-deploy
 # 주의:       직접 docker compose 를 쓸 땐 --env-file apps/api/.env.production 을 반드시 붙인다(${} 치환 출처).
 name: daeoebi
 
@@ -31,6 +32,9 @@ services:
             retries: 5
 
     api:
+        # 기본은 CI(GitHub Actions)가 GHCR 에 올린 이미지를 pull 해 쓴다(make prod-deploy).
+        # build 블록은 서버에서 직접 빌드하는 폴백 경로(make prod-up)로 남겨둔다.
+        image: ${API_IMAGE:-ghcr.io/leejw951208/daeoebi-api:latest}
         build:
             context: .
             dockerfile: Dockerfile
@@ -64,6 +68,7 @@ services:
             start_period: 40s
 
     web:
+        image: ${WEB_IMAGE:-ghcr.io/leejw951208/daeoebi-web:latest}
         build:
             context: .
             dockerfile: Dockerfile

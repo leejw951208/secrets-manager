@@ -1,7 +1,7 @@
 # 개발 환경 전용 명령 모음. (운영 배포는 docker-compose.yml 로 별도 관리)
 # 개발 구성: DB 는 도커(docker-compose.dev.yml), web·API 는 호스트에서 직접 실행.
 # 명명 규칙: 개발 환경 타깃은 dev-, 운영 배포 타깃은 prod- 프리픽스. 검증(lint/typecheck/test/build/clean)은 환경 무관.
-.PHONY: help dev-up dev-down dev-reset dev-stop dev-down-db dev-reset-db dev-migrate dev-generate lint typecheck test build clean prod-up prod-up-api prod-up-web prod-down prod-logs prod-ps prod-backup tunnel-up tunnel-down tunnel-restart tunnel-logs
+.PHONY: help dev-up dev-down dev-reset dev-stop dev-down-db dev-reset-db dev-migrate dev-generate lint typecheck test build clean prod-up prod-up-api prod-up-web prod-deploy prod-deploy-api prod-deploy-web prod-pull prod-down prod-logs prod-ps prod-backup tunnel-up tunnel-down tunnel-restart tunnel-logs
 
 # 개발 DB 컨테이너 자격증명도 apps/api/.env.development 를 ${} 치환 출처로 쓴다(운영과 동일 패턴).
 DEV_COMPOSE := docker compose -f docker-compose.dev.yml --env-file apps/api/.env.development
@@ -29,6 +29,12 @@ help:
 	@echo "  make clean          node_modules / 빌드 산출물 제거"
 	@echo ""
 	@echo "운영 배포 명령 (VPS, docker-compose.yml — DEPLOY.md 참고):"
+	@echo "  [권장: CI 이미지 pull — 서버에서 빌드 안 함]"
+	@echo "  make prod-deploy     GHCR 이미지 pull + 기동 (전체)"
+	@echo "  make prod-deploy-api api 이미지만 pull + 재기동"
+	@echo "  make prod-deploy-web web 이미지만 pull + 재기동"
+	@echo "  make prod-pull       GHCR 최신 이미지만 내려받기"
+	@echo "  [폴백: 서버에서 직접 빌드]"
 	@echo "  make prod-up     빌드 + 기동 (전체)"
 	@echo "  make prod-up-api api 만 재빌드·재기동"
 	@echo "  make prod-up-web web 만 재빌드·재기동"
@@ -106,6 +112,22 @@ prod-up-api:
 
 prod-up-web:
 	$(PROD_COMPOSE) up -d --build web
+
+# CI(GitHub Actions)가 GHCR 에 올린 이미지를 pull 해 기동한다(서버 빌드 없음, 1코어 VPS 권장 경로).
+# postgres 는 build 대상이 아니므로 pull 은 api·web 만 한다. up 은 --build 없이 pull 된 이미지를 그대로 쓴다.
+prod-pull:
+	$(PROD_COMPOSE) pull api web
+
+prod-deploy: prod-pull
+	$(PROD_COMPOSE) up -d
+
+prod-deploy-api:
+	$(PROD_COMPOSE) pull api
+	$(PROD_COMPOSE) up -d api
+
+prod-deploy-web:
+	$(PROD_COMPOSE) pull web
+	$(PROD_COMPOSE) up -d web
 
 prod-down:
 	$(PROD_COMPOSE) down
