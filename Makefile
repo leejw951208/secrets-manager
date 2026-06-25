@@ -1,7 +1,7 @@
 # 개발 환경 전용 명령 모음. (운영 배포는 docker-compose.yml 로 별도 관리)
 # 개발 구성: DB 는 도커(docker-compose.dev.yml), web·API 는 호스트에서 직접 실행.
 # 명명 규칙: 개발 환경 타깃은 dev-, 운영 배포 타깃은 prod- 프리픽스. 검증(lint/typecheck/test/build/clean)은 환경 무관.
-.PHONY: help dev-db-down dev-db-reset dev-migrate dev-generate dev-up dev-stop-app dev-down dev-down-reset lint typecheck test build clean prod-up prod-up-api prod-up-web prod-down prod-logs prod-ps prod-backup tunnel-up tunnel-down tunnel-restart tunnel-logs
+.PHONY: help dev-up dev-down dev-reset dev-stop dev-down-db dev-reset-db dev-migrate dev-generate lint typecheck test build clean prod-up prod-up-api prod-up-web prod-down prod-logs prod-ps prod-backup tunnel-up tunnel-down tunnel-restart tunnel-logs
 
 # 개발 DB 컨테이너 자격증명도 apps/api/.env.development 를 ${} 치환 출처로 쓴다(운영과 동일 패턴).
 DEV_COMPOSE := docker compose -f docker-compose.dev.yml --env-file apps/api/.env.development
@@ -12,15 +12,15 @@ TUNNEL_COMPOSE := docker compose -f docker-compose.cloudflared.yml
 
 help:
 	@echo "개발 환경 명령:"
-	@echo "  make dev-up         DB(도커) 기동 + 마이그레이션 후 web·API(로컬) 동시 실행"
-	@echo "  make dev-down       web·API(로컬) 종료 + 개발 DB 컨테이너 종료 (데이터 유지)"
-	@echo "  make dev-down-reset web·API(로컬) 종료 + 개발 DB 컨테이너 종료 + 데이터 삭제"
+	@echo "  make dev-up        DB(도커) 기동 + 마이그레이션 후 web·API(로컬) 동시 실행"
+	@echo "  make dev-down      web·API 종료 + 개발 DB 종료 (데이터 유지)"
+	@echo "  make dev-reset     web·API 종료 + 개발 DB 종료 + 데이터 삭제"
 	@echo ""
-	@echo "  make dev-stop-app   web·API(로컬) 개발 서버만 종료 (DB 유지)"
-	@echo "  make dev-db-down    개발 DB 컨테이너 종료 (데이터 유지)"
-	@echo "  make dev-db-reset   개발 DB 컨테이너 종료 + 데이터 삭제"
-	@echo "  make dev-migrate    Prisma 마이그레이션 적용 (DB 자동 기동)"
-	@echo "  make dev-generate   Prisma Client 재생성 (schema 변경 후)"
+	@echo "  make dev-stop      web·API(로컬) 개발 서버만 종료 (DB 유지)"
+	@echo "  make dev-down-db   개발 DB 컨테이너만 종료 (데이터 유지)"
+	@echo "  make dev-reset-db  개발 DB 컨테이너만 종료 + 데이터 삭제"
+	@echo "  make dev-migrate   Prisma 마이그레이션 적용 (DB 자동 기동)"
+	@echo "  make dev-generate  Prisma Client 재생성 (schema 변경 후)"
 	@echo ""
 	@echo "  make lint           전체 린트"
 	@echo "  make typecheck      전체 타입체크"
@@ -44,10 +44,10 @@ help:
 	@echo "  make tunnel-logs    터널 엣지 연결 로그"
 
 # ── DB (도커) ──────────────────────────────────────────
-dev-db-down:
+dev-down-db:
 	$(DEV_COMPOSE) down
 
-dev-db-reset:
+dev-reset-db:
 	$(DEV_COMPOSE) down -v
 
 # ── Prisma ─────────────────────────────────────────────
@@ -69,16 +69,16 @@ dev-up:
 # ── 종료 ───────────────────────────────────────────────
 # 호스트에서 떠 있는 web(:3010)·API(:4010) 개발 서버를 포트 점유 프로세스 기준으로 종료한다.
 # 프로세스가 없어도 실패하지 않는다.
-dev-stop-app:
+dev-stop:
 	@echo "▶ web·API 개발 서버 종료"
 	@pids="$$(lsof -ti tcp:3010 2>/dev/null; lsof -ti tcp:4010 2>/dev/null)"; \
 		if [ -n "$$pids" ]; then kill $$pids 2>/dev/null || true; else echo "  (실행 중인 개발 서버 없음)"; fi
 
 # 서비스(web·API) + DB 를 함께 내린다. DB 데이터는 유지한다.
-dev-down: dev-stop-app dev-db-down
+dev-down: dev-stop dev-down-db
 
 # 서비스(web·API) + DB 를 함께 내리고 DB 데이터까지 삭제한다.
-dev-down-reset: dev-stop-app dev-db-reset
+dev-reset: dev-stop dev-reset-db
 
 # ── 검증 ───────────────────────────────────────────────
 lint:
