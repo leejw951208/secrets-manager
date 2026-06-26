@@ -7,7 +7,7 @@ const PAYLOAD_VERSION = 1
 
 interface VersionedPayload {
     v: number
-    fields: { name: string; value: string }[]
+    fields: { name: string; value: string; sensitive?: boolean }[]
     memo: string
 }
 
@@ -36,6 +36,9 @@ export async function openPayload(
             ? parsed.fields.map((f) => ({
                   name: String(f.name ?? ""),
                   value: String(f.value ?? ""),
+                  // 구버전 데이터엔 sensitive 가 없다. 그대로 undefined 로 두어 상세에서 이름 휴리스틱으로 폴백시킨다.
+                  sensitive:
+                      typeof f.sensitive === "boolean" ? f.sensitive : undefined,
               }))
             : [],
         memo: typeof parsed.memo === "string" ? parsed.memo : "",

@@ -244,7 +244,10 @@ export default function SecretDetailPage() {
                             key={`${field.name}-${idx}`}
                             label={field.name}
                             value={field.value}
-                            sensitive={isSensitiveFieldName(field.name)}
+                            sensitive={
+                                field.sensitive ??
+                                isSensitiveFieldName(field.name)
+                            }
                             onActivity={resetIdle}
                         />
                     ))}

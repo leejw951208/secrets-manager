@@ -6,6 +6,8 @@ import { createContext, useContext } from "react"
 export interface SecretField {
     name: string
     value: string
+    // 상세 화면에서 값을 마스킹할지 여부. 미지정(구버전 데이터)이면 이름 휴리스틱으로 폴백한다.
+    sensitive?: boolean
 }
 
 export interface SecretPayload {

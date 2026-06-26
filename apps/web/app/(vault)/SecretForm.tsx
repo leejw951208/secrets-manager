@@ -7,7 +7,7 @@ import { createSecret, updateSecret } from "@/lib/vault-client"
 import { isApiError } from "@/lib/api-error"
 import { useVault, type SecretField } from "./vault-context"
 import { sealPayload } from "./secret-payload"
-import { FIELD_SUGGESTIONS } from "./field-suggestions"
+import { FIELD_SUGGESTIONS, isSensitiveFieldName } from "./field-suggestions"
 
 const MAX_FIELDS = 20
 
@@ -34,7 +34,16 @@ interface FieldRow extends SecretField {
 let rowSeq = 0
 function makeRow(field?: SecretField): FieldRow {
     rowSeq += 1
-    return { key: `f${rowSeq}`, name: field?.name ?? "", value: field?.value ?? "" }
+    // 저장된 sensitive 가 있으면 그대로, 없으면(추천칩·구버전) 이름 휴리스틱으로 기본값을 정한다.
+    const sensitive =
+        field?.sensitive ??
+        (field?.name ? isSensitiveFieldName(field.name) : false)
+    return {
+        key: `f${rowSeq}`,
+        name: field?.name ?? "",
+        value: field?.value ?? "",
+        sensitive,
+    }
 }
 
 export function SecretForm({ siteId, initial, onSuccess, onCancel }: Props) {
@@ -111,7 +120,11 @@ export function SecretForm({ siteId, initial, onSuccess, onCancel }: Props) {
         // 리뷰 단계 체류 후 저장 클릭도 활동으로 보고 자동잠금 타이머를 리셋한다.
         resetIdle()
         const fields = rows
-            .map((r) => ({ name: r.name.trim(), value: r.value }))
+            .map((r) => ({
+                name: r.name.trim(),
+                value: r.value,
+                sensitive: r.sensitive ?? false,
+            }))
             .filter((f) => f.name)
 
         setSubmitting(true)
@@ -245,21 +258,36 @@ export function SecretForm({ siteId, initial, onSuccess, onCancel }: Props) {
                                             fontSize: 13.5,
                                             fontWeight: 700,
                                             color: "var(--color-text-secondary)",
+                                            flexShrink: 0,
                                         }}
                                     >
                                         {r.name.trim()}
                                     </span>
-                                    <span
-                                        aria-label="값 숨김"
-                                        style={{
-                                            fontFamily: "var(--font-mono)",
-                                            fontSize: 14,
-                                            letterSpacing: "0.04em",
-                                            color: "var(--color-text-muted)",
-                                        }}
-                                    >
-                                        ••••••••
-                                    </span>
+                                    {r.sensitive ? (
+                                        <span
+                                            aria-label="값 숨김"
+                                            style={{
+                                                fontFamily: "var(--font-mono)",
+                                                fontSize: 14,
+                                                letterSpacing: "0.04em",
+                                                color: "var(--color-text-muted)",
+                                            }}
+                                        >
+                                            ••••••••
+                                        </span>
+                                    ) : (
+                                        <span
+                                            style={{
+                                                fontSize: 14,
+                                                color: "var(--color-text-secondary)",
+                                                wordBreak: "break-all",
+                                                textAlign: "right",
+                                                minWidth: 0,
+                                            }}
+                                        >
+                                            {r.value.trim() || "—"}
+                                        </span>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -509,6 +537,24 @@ export function SecretForm({ siteId, initial, onSuccess, onCancel }: Props) {
                                         }}
                                     />
                                     <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                                        <button
+                                            type="button"
+                                            className="secret-btn"
+                                            onClick={() =>
+                                                updateRow(idx, {
+                                                    sensitive: !row.sensitive,
+                                                })
+                                            }
+                                            aria-pressed={row.sensitive ?? false}
+                                            aria-label={`필드 ${idx + 1} 값 ${row.sensitive ? "표시로 전환" : "가림으로 전환"}`}
+                                            title={
+                                                row.sensitive
+                                                    ? "상세에서 가림(마스킹)"
+                                                    : "상세에서 표시"
+                                            }
+                                        >
+                                            {row.sensitive ? "🔒" : "👁"}
+                                        </button>
                                         <button
                                             type="button"
                                             className="secret-btn"
