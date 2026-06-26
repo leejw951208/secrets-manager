@@ -8,6 +8,12 @@
 |:---:|:---:|:---:|:---:|
 | <img src="docs/images/onboarding.png" width="200" alt="패스키로 시작하는 온보딩 화면" /> | <img src="docs/images/list.png" width="200" alt="사이트별 비밀번호 목록" /> | <img src="docs/images/detail.png" width="200" alt="비밀번호 상세 화면" /> | <img src="docs/images/new.png" width="200" alt="새 항목 추가 화면" /> |
 
+## 데모
+
+로그인 없이 둘러볼 수 있는 데모를 제공한다. 목록 → 상세 → 추가 흐름을 직접 눌러볼 수 있으며, 모든 데이터는 예시이고 실제 비밀번호가 아니다(변경 사항은 저장되지 않는다).
+
+👉 **<https://daeoebi.leejw.dev/demo>**
+
 ## 개발 환경
 
 - Node.js 24
