@@ -1,7 +1,7 @@
 "use client"
 // 대외비 목록 화면. 기본 사이트의 시크릿 메타를 나열하고 제목 검색을 제공한다.
 // 상세는 /[id], 신규는 /new(우하단 FAB), 백업은 /backup 라우트에서 처리한다. 자동잠금 카운트다운·수동 잠그기 포함.
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
@@ -23,9 +23,25 @@ export function EntriesScreen() {
 
     const query = search.get("q") ?? ""
 
+    // 입력 박스는 로컬 state 로 즉시 반영한다. URL(q) 반영·검색 요청은 디바운스해
+    // 매 글자마다 router.replace + 네트워크 요청이 겹쳐 입력이 지연되던 문제를 막는다.
+    const [input, setInput] = useState(query)
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
     const [secrets, setSecrets] = useState<SecretMeta[]>([])
     const [state, setState] = useState<ListState>("idle")
     const [error, setError] = useState<string | null>(null)
+
+    // 뒤로가기 등 외부 요인으로 q 가 바뀌면 입력 박스도 맞춘다(사용자 입력 중이 아닌 경우).
+    useEffect(() => {
+        setInput(query)
+    }, [query])
+
+    useEffect(() => {
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current)
+        }
+    }, [])
 
     const siteId = siteState.status === "ready" ? siteState.siteId : null
 
@@ -53,15 +69,19 @@ export function EntriesScreen() {
         }
     }, [siteId, query])
 
-    function updateFilter(next: { q?: string }) {
-        resetIdle()
+    function commitQuery(value: string) {
         const params = new URLSearchParams(search.toString())
-        if (next.q !== undefined) {
-            if (!next.q) params.delete("q")
-            else params.set("q", next.q)
-        }
+        if (!value) params.delete("q")
+        else params.set("q", value)
         const qs = params.toString()
         router.replace(qs ? `/?${qs}` : "/", { scroll: false })
+    }
+
+    function onSearchChange(value: string) {
+        resetIdle()
+        setInput(value)
+        if (debounceRef.current) clearTimeout(debounceRef.current)
+        debounceRef.current = setTimeout(() => commitQuery(value.trim()), 250)
     }
 
     const idleWarning = useMemo(() => {
@@ -125,8 +145,8 @@ export function EntriesScreen() {
                     <input
                         type="search"
                         placeholder="제목 검색"
-                        value={query}
-                        onChange={(e) => updateFilter({ q: e.target.value })}
+                        value={input}
+                        onChange={(e) => onSearchChange(e.target.value)}
                         aria-label="제목 검색"
                     />
                 </div>
