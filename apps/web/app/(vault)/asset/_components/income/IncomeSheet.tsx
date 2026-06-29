@@ -122,7 +122,7 @@ export function IncomeSheet({
                                         fontWeight: 600,
                                     }}
                                 >
-                                    이 달 수입이 없어요
+                                    이 달 수입이 없어요.
                                 </div>
                             ) : (
                                 incomes.map((inc) => (
