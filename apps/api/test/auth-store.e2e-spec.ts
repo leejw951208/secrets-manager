@@ -244,7 +244,13 @@ describe("auth·store e2e (WebAuthn 검증만 모킹)", () => {
             const authTag = b64(16)
             const created = await write("post", "/secrets")
                 .set("Cookie", cookie)
-                .send({ siteId: site.body.id, label: "깃허브", iv, ciphertext, authTag })
+                .send({
+                    siteId: site.body.id,
+                    label: "깃허브",
+                    iv,
+                    ciphertext,
+                    authTag,
+                })
                 .expect(201)
             // 목록 응답은 메타만(블롭 없음).
             expect(created.body.iv).toBeUndefined()
@@ -311,7 +317,11 @@ describe("auth·store e2e (WebAuthn 검증만 모킹)", () => {
     })
 
     describe("자산(/income·/expenses·/recurring)", () => {
-        const blob = () => ({ iv: b64(12), ciphertext: b64(64), authTag: b64(16) })
+        const blob = () => ({
+            iv: b64(12),
+            ciphertext: b64(64),
+            authTag: b64(16),
+        })
 
         it("무세션 GET /expenses 는 401", async () => {
             const res = await request(app.getHttpServer())
@@ -320,15 +330,49 @@ describe("auth·store e2e (WebAuthn 검증만 모킹)", () => {
             expect(res.body.code).toBe("SESSION_REQUIRED")
         })
 
-        it("income upsert 후 동일 블롭을 반환한다(서버 복호화 없음)", async () => {
+        it("월 수입 생성 → 월 조회 1건 → 다른 달 0건 → 수정 → 삭제 · 월 형식 오류 400", async () => {
             const cookie = await registerFirst()
             const b = blob()
-            await write("put", "/income").set("Cookie", cookie).send(b).expect(200)
-            const res = await request(app.getHttpServer())
-                .get("/income")
+
+            // POST /income → 201
+            const created = await write("post", "/income")
+                .set("Cookie", cookie)
+                .send({ month: "2026-06", ...b })
+                .expect(201)
+            const id: string = created.body.id
+            expect(id).toBeDefined()
+
+            // GET /income?month=2026-06 → 1건
+            const list = await request(app.getHttpServer())
+                .get("/income?month=2026-06")
                 .set("Cookie", cookie)
                 .expect(200)
-            expect(res.body).toMatchObject(b)
+            expect(list.body).toHaveLength(1)
+            expect(list.body[0].id).toBe(id)
+
+            // GET 다른 달 → 0건(월 귀속 격리)
+            const other = await request(app.getHttpServer())
+                .get("/income?month=2026-07")
+                .set("Cookie", cookie)
+                .expect(200)
+            expect(other.body).toHaveLength(0)
+
+            // PATCH /income/:id → 200
+            await write("patch", `/income/${id}`)
+                .set("Cookie", cookie)
+                .send(blob())
+                .expect(200)
+
+            // DELETE /income/:id → 204
+            await write("delete", `/income/${id}`)
+                .set("Cookie", cookie)
+                .expect(204)
+
+            // month 형식 오류 → 400
+            await request(app.getHttpServer())
+                .get("/income?month=2026/6")
+                .set("Cookie", cookie)
+                .expect(400)
         })
 
         it("지출 생성 후 해당 월 목록에 블롭 포함해 조회된다", async () => {
@@ -366,7 +410,10 @@ describe("auth·store e2e (WebAuthn 검증만 모킹)", () => {
                 period: "2026-06",
                 ...blob(),
             }
-            await write("post", "/expenses").set("Cookie", cookie).send(body).expect(201)
+            await write("post", "/expenses")
+                .set("Cookie", cookie)
+                .send(body)
+                .expect(201)
             const dup = await write("post", "/expenses")
                 .set("Cookie", cookie)
                 .send(body)
