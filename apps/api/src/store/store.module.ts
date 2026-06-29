@@ -18,7 +18,7 @@ import { BackupService } from "./backup.service"
 import { IncomeService } from "./income.service"
 import { ExpenseService } from "./expense.service"
 import { RecurringService } from "./recurring.service"
-import { StoreCsrfMiddleware } from "./store-csrf.middleware"
+import { CsrfMiddleware } from "../common/csrf.middleware"
 
 @Module({
     imports: [PrismaModule],
@@ -46,7 +46,7 @@ import { StoreCsrfMiddleware } from "./store-csrf.middleware"
 export class StoreModule implements NestModule {
     configure(consumer: MiddlewareConsumer): void {
         consumer
-            .apply(StoreCsrfMiddleware)
+            .apply(CsrfMiddleware)
             .forRoutes(
                 SiteController,
                 CategoryController,
