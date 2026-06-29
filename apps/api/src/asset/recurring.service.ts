@@ -13,6 +13,8 @@ function prismaBytes(value: Uint8Array): Uint8Array<ArrayBuffer> {
 interface RecurringRow {
     id: string
     dayOfMonth: number
+    startMonth: string
+    termMonths: number | null
     active: boolean
     iv: Uint8Array
     ciphertext: Uint8Array
@@ -23,6 +25,8 @@ function toView(row: RecurringRow) {
     return {
         id: row.id,
         dayOfMonth: row.dayOfMonth,
+        startMonth: row.startMonth,
+        termMonths: row.termMonths,
         active: row.active,
         iv: toBase64url(row.iv),
         ciphertext: toBase64url(row.ciphertext),
@@ -47,6 +51,8 @@ export class RecurringService {
         const row = await this.prisma.recurringExpense.create({
             data: {
                 dayOfMonth: dto.dayOfMonth,
+                startMonth: dto.startMonth,
+                termMonths: dto.termMonths ?? null,
                 iv: prismaBytes(fromBase64url(dto.iv)),
                 ciphertext: prismaBytes(fromBase64url(dto.ciphertext)),
                 authTag: prismaBytes(fromBase64url(dto.authTag)),
@@ -74,7 +80,8 @@ export class RecurringService {
         return toView(row)
     }
 
-    // 템플릿 삭제 = 고정 지출 해지. 기존 인스턴스의 recurringId 는 SetNull 로 남는다(과거 기록 보존).
+    // 템플릿 삭제 = 고정 지출 "전체 삭제". FK onDelete Cascade 라 이 템플릿의 모든 인스턴스도 함께 삭제된다.
+    // (앞으로 자동 생성만 멈추고 기록은 남기는 "해제"는 update({active:false}) 로 별도 처리한다.)
     async remove(id: string): Promise<void> {
         await this.ensureExists(id)
         await this.prisma.recurringExpense.delete({ where: { id } })
