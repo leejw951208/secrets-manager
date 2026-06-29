@@ -18,6 +18,9 @@ export const CATEGORIES: AssetCategory[] = [
 export const METHODS = ["카드", "자동이체", "현금"] as const
 export type Method = (typeof METHODS)[number]
 
+// 결제월 이연(익월 결제) 대상 결제수단. 자동이체·현금은 당월.
+export const CARD_METHOD: Method = "카드"
+
 const FALLBACK_COLOR = "#98a0a8"
 
 export function categoryColor(key: string): string {
@@ -32,4 +35,15 @@ export function formatAmount(n: number): string {
 // ₩ 접두 통화 표기(예: 8500 → "₩8,500").
 export function formatWon(n: number): string {
     return `₩${formatAmount(n)}`
+}
+
+// 수입 고정 카테고리 3종. key 는 암호문 블롭에 저장된다.
+export const INCOME_CATEGORIES: AssetCategory[] = [
+    { key: "월급", color: "#2f9e6e" },
+    { key: "상여", color: "#3d7dd6" },
+    { key: "기타", color: "#98a0a8" },
+]
+
+export function incomeCategoryColor(key: string): string {
+    return INCOME_CATEGORIES.find((c) => c.key === key)?.color ?? FALLBACK_COLOR
 }

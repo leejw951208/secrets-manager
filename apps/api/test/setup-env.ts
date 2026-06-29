@@ -17,3 +17,9 @@ loadEnv({ path: path.join(ROOT, ".env") })
 // 있어야 한다. dev .env 의 값에 의존하지 않도록 테스트 토큰을 고정 주입한다(spec 의 헬퍼가
 // 같은 값을 register/verify 본문에 싣는다). 운영/개발 동작은 건드리지 않는다.
 process.env.BOOTSTRAP_TOKEN = "e2e-bootstrap-token"
+
+// CSRF 미들웨어는 모듈 로드 시점에 VAULT_ALLOWED_ORIGINS 를 읽는다.
+// dev .env 는 포트 3010 을 허용하지만 e2e spec 의 Origin 은 3000 이다.
+// dev .env 의 값에 의존하지 않도록 e2e 허용 오리진을 고정 주입한다.
+process.env.VAULT_ALLOWED_ORIGINS =
+    "http://localhost:3000,http://127.0.0.1:3000"

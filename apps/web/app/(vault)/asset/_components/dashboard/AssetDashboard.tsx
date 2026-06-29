@@ -6,6 +6,7 @@ import {
     spentPct,
     totalSpent,
     type ComputedExpense,
+    type ComputedIncome,
 } from "../../_lib/asset-compute"
 import { RemainingHero } from "./RemainingHero"
 import { IncomeExpenseCards } from "./IncomeExpenseCards"
@@ -15,6 +16,7 @@ import { DayDetail } from "./DayDetail"
 
 export interface Loaded {
     incomeAmount: number
+    incomes: ComputedIncome[]
     expenses: ComputedExpense[]
 }
 
@@ -41,7 +43,7 @@ export function AssetDashboard({
     const cats = byCategory(data.expenses)
     const dayExpenses = selectedDay
         ? data.expenses
-              .filter((e) => e.date === selectedDay)
+              .filter((e) => e.billingDate === selectedDay)
               .sort((a, b) => b.amount - a.amount)
         : []
 
@@ -58,6 +60,7 @@ export function AssetDashboard({
             <RemainingHero left={left} pct={pct} income={data.incomeAmount} />
             <IncomeExpenseCards
                 income={data.incomeAmount}
+                incomeCount={data.incomes.length}
                 spent={spent}
                 count={data.expenses.length}
                 onOpenIncome={onOpenIncome}

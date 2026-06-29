@@ -64,15 +64,18 @@ model Category {
   @@index([label])
 }
 
-// 월 수입(자산 관리). 단일 사용자라 싱글톤 1행이며 금액은 암호문 블롭({amount})이다.
-// 서버는 복호화하지 않는다(secret 과 동일 패스스루). RecoveryWrap 의 singleton id 패턴을 따른다.
+// 월 수입(자산 관리). 월별 다건 저장이며 금액은 암호문 블롭({amount})이다.
+// 서버는 복호화하지 않는다(secret 과 동일 패스스루). month 는 "YYYY-MM" 평문으로 월 범위 조회용이다.
 model Income {
-  id         String   @id @default("singleton")
+  id         String   @id @default(cuid())
+  month      String   // "YYYY-MM". 평문 — 월 범위 조회용.
   iv         Bytes
   ciphertext Bytes
   authTag    Bytes
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@index([month])
 }
 
 // 고정 지출 템플릿. 매월 자동 생성의 원본이다. dayOfMonth·active 는 스케줄용 평문,
