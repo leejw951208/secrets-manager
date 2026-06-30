@@ -58,6 +58,11 @@ describe("asset-compute", () => {
         expect(rows[0]).toMatchObject({ name: "미분류", amount: 5000 })
     })
 
+    it("byCategory 는 지출 0인 항목을 제외한다", () => {
+        const rows = byCategory([exp({ categoryId: "c1", amount: 0 })], CATS)
+        expect(rows).toHaveLength(0)
+    })
+
     it("byDay 는 일자별 합계", () => {
         const map = byDay([
             exp({ date: "2026-06-10", amount: 1000 }),

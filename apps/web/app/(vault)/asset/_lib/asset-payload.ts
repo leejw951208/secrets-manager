@@ -1,4 +1,4 @@
-// 자산(수입·지출) 본문 평문 구조의 seal/open 헬퍼. 금액·항목·카테고리·결제방법을 VK 로 암호화한다.
+// 자산(수입·지출) 본문 평문 구조의 seal/open 헬퍼. 지출 블롭은 항목·금액만, 수입 블롭은 항목·금액·카테고리를 VK 로 암호화한다.
 // secret-payload 와 동일하게 vault-crypto 의 seal/open(AES-256-GCM)을 사용한다(서버는 복호화 안 함).
 import { open, seal, type SealedBlob } from "@/lib/vault-crypto"
 

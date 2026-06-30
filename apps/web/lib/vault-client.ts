@@ -493,7 +493,11 @@ export async function createRecurring(
 
 export async function updateRecurring(
     id: string,
-    input: Partial<SealedBlobDto> & { dayOfMonth?: number; active?: boolean },
+    input: Partial<SealedBlobDto> & {
+        dayOfMonth?: number
+        active?: boolean
+        categoryId?: string
+    },
 ): Promise<RecurringView> {
     const { data } = await vaultClient.patch<RecurringView>(
         `/recurring/${id}`,

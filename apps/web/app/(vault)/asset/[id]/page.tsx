@@ -1,5 +1,5 @@
 "use client"
-// 지출 수정 라우트. 지출을 불러와 VK 로 복호화한 뒤 ExpenseForm 에 초기값으로 넘긴다.
+// 지출 수정 라우트. 지출과 카테고리를 함께 불러와 VK 로 복호화한 뒤 ExpenseForm 에 초기값으로 넘긴다.
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import {
@@ -18,14 +18,17 @@ import {
 type State =
     | { status: "loading" }
     | { status: "error"; message: string }
-    | { status: "ready"; initial: ExpenseFormInitial }
+    | {
+          status: "ready"
+          initial: ExpenseFormInitial
+          categories: AssetCategory[]
+      }
 
 export default function EditExpensePage() {
     const router = useRouter()
     const params = useParams<{ id: string }>()
     const { vaultKey } = useVault()
     const [state, setState] = useState<State>({ status: "loading" })
-    const [categories, setCategories] = useState<AssetCategory[]>([])
 
     const back = () => {
         router.push("/asset")
@@ -33,25 +36,15 @@ export default function EditExpensePage() {
     }
 
     useEffect(() => {
-        listAssetCategories()
-            .then(setCategories)
-            .catch(() => {
-                setState({
-                    status: "error",
-                    message: "카테고리를 불러오지 못했습니다.",
-                })
-            })
-    }, [])
-
-    useEffect(() => {
         let cancelled = false
         const id = params.id
-        getExpense(id)
-            .then(async (view) => {
+        Promise.all([getExpense(id), listAssetCategories()])
+            .then(async ([view, categories]) => {
                 const payload = await openExpense(vaultKey, view)
                 if (cancelled) return
                 setState({
                     status: "ready",
+                    categories,
                     initial: {
                         id: view.id,
                         date: view.date,
@@ -65,9 +58,7 @@ export default function EditExpensePage() {
                 if (cancelled) return
                 setState({
                     status: "error",
-                    message: isApiError(e)
-                        ? e.message
-                        : "지출을 불러오지 못했습니다.",
+                    message: isApiError(e) ? e.message : "불러오지 못했습니다.",
                 })
             })
         return () => {
@@ -105,7 +96,7 @@ export default function EditExpensePage() {
 
     return (
         <ExpenseForm
-            categories={categories}
+            categories={state.categories}
             initial={state.initial}
             onSaved={back}
             onCancel={back}
