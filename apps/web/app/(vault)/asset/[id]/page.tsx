@@ -2,7 +2,11 @@
 // 지출 수정 라우트. 지출을 불러와 VK 로 복호화한 뒤 ExpenseForm 에 초기값으로 넘긴다.
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { getExpense } from "@/lib/vault-client"
+import {
+    getExpense,
+    listAssetCategories,
+    type AssetCategory,
+} from "@/lib/vault-client"
 import { isApiError } from "@/lib/api-error"
 import { useVault } from "../../_lib/vault-context"
 import { openExpense } from "../_lib/asset-payload"
@@ -21,11 +25,18 @@ export default function EditExpensePage() {
     const params = useParams<{ id: string }>()
     const { vaultKey } = useVault()
     const [state, setState] = useState<State>({ status: "loading" })
+    const [categories, setCategories] = useState<AssetCategory[]>([])
 
     const back = () => {
         router.push("/asset")
         router.refresh()
     }
+
+    useEffect(() => {
+        listAssetCategories()
+            .then(setCategories)
+            .catch(() => {})
+    }, [])
 
     useEffect(() => {
         let cancelled = false
@@ -40,6 +51,7 @@ export default function EditExpensePage() {
                         id: view.id,
                         date: view.date,
                         recurringId: view.recurringId,
+                        categoryId: view.categoryId,
                         payload,
                     },
                 })
@@ -88,6 +100,7 @@ export default function EditExpensePage() {
 
     return (
         <ExpenseForm
+            categories={categories}
             initial={state.initial}
             onSaved={back}
             onCancel={back}

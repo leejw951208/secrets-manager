@@ -11,12 +11,9 @@ import {
     deleteRecurring,
     updateExpense,
     updateRecurring,
+    type AssetCategory,
 } from "@/lib/vault-client"
-import {
-    CATEGORIES,
-    categoryColor,
-    formatAmount,
-} from "../_lib/asset-categories"
+import { formatAmount } from "../_lib/asset-categories"
 import { sealExpense, type ExpensePayload } from "../_lib/asset-payload"
 import { monthOf, todayISO } from "../_lib/asset-dates"
 
@@ -25,16 +22,24 @@ export interface ExpenseFormInitial {
     date: string
     recurringId: string | null
     payload: ExpensePayload
+    categoryId: string | null
 }
 
 interface Props {
+    categories: AssetCategory[]
     initial: ExpenseFormInitial | null
     onSaved: () => void
     onCancel: () => void
     onDeleted: () => void
 }
 
-export function ExpenseForm({ initial, onSaved, onCancel, onDeleted }: Props) {
+export function ExpenseForm({
+    categories,
+    initial,
+    onSaved,
+    onCancel,
+    onDeleted,
+}: Props) {
     const { vaultKey, resetIdle } = useVault()
     const isEdit = initial !== null
 
@@ -42,8 +47,8 @@ export function ExpenseForm({ initial, onSaved, onCancel, onDeleted }: Props) {
         initial ? String(initial.payload.amount) : "",
     )
     const [item, setItem] = useState(initial?.payload.item ?? "")
-    const [category, setCategory] = useState(
-        initial?.payload.category ?? CATEGORIES[0].key,
+    const [categoryId, setCategoryId] = useState<string | null>(
+        initial?.categoryId ?? categories[0]?.id ?? null,
     )
     const [date, setDate] = useState(initial?.date ?? todayISO())
     const [recurring, setRecurring] = useState(false)
@@ -70,17 +75,21 @@ export function ExpenseForm({ initial, onSaved, onCancel, onDeleted }: Props) {
             const payload: ExpensePayload = {
                 item: item.trim(),
                 amount: amountNum,
-                category,
             }
             if (isEdit) {
                 const blob = await sealExpense(vaultKey, payload)
-                await updateExpense(initial.id, { date, ...blob })
+                await updateExpense(initial.id, {
+                    date,
+                    categoryId: categoryId ?? undefined,
+                    ...blob,
+                })
             } else if (recurring) {
                 const tmplBlob = await sealExpense(vaultKey, payload)
                 const term = Number(termMonths)
                 const tmpl = await createRecurring({
                     dayOfMonth: Number(date.slice(8, 10)),
                     startMonth: monthOf(date),
+                    categoryId: categoryId ?? undefined,
                     // 1 이상 정수면 기간 제한, 비었거나 0 이면 무기한(미전송).
                     ...(Number.isInteger(term) && term >= 1
                         ? { termMonths: term }
@@ -92,11 +101,16 @@ export function ExpenseForm({ initial, onSaved, onCancel, onDeleted }: Props) {
                     date,
                     recurringId: tmpl.id,
                     period: monthOf(date),
+                    categoryId: categoryId ?? undefined,
                     ...instBlob,
                 })
             } else {
                 const blob = await sealExpense(vaultKey, payload)
-                await createExpense({ date, ...blob })
+                await createExpense({
+                    date,
+                    categoryId: categoryId ?? undefined,
+                    ...blob,
+                })
             }
             onSaved()
         } catch (e) {
@@ -262,15 +276,15 @@ export function ExpenseForm({ initial, onSaved, onCancel, onDeleted }: Props) {
                         카테고리
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                        {CATEGORIES.map((c) => {
-                            const active = c.key === category
+                        {categories.map((c) => {
+                            const active = c.id === categoryId
                             return (
                                 <button
-                                    key={c.key}
+                                    key={c.id}
                                     type="button"
                                     onClick={() => {
                                         resetIdle()
-                                        setCategory(c.key)
+                                        setCategoryId(c.id)
                                     }}
                                     aria-pressed={active}
                                     className="chip"
@@ -290,11 +304,11 @@ export function ExpenseForm({ initial, onSaved, onCancel, onDeleted }: Props) {
                                             width: 9,
                                             height: 9,
                                             borderRadius: "50%",
-                                            background: categoryColor(c.key),
+                                            background: c.color,
                                             display: "inline-block",
                                         }}
                                     />
-                                    {c.key}
+                                    {c.name}
                                 </button>
                             )
                         })}
