@@ -33,6 +33,7 @@ import {
     type Loaded,
 } from "./_components/dashboard/AssetDashboard"
 import { IncomeSheet } from "./_components/income/IncomeSheet"
+import { CategoryManager } from "./_components/CategoryManager"
 import { LockTimer } from "../_components/LockTimer"
 
 type State =
@@ -46,6 +47,7 @@ export default function AssetPage() {
     const [state, setState] = useState<State>({ status: "loading" })
     const [selectedDay, setSelectedDay] = useState<string | null>(null)
     const [sheetOpen, setSheetOpen] = useState(false)
+    const [categorySheetOpen, setCategorySheetOpen] = useState(false)
 
     const load = useCallback(async () => {
         setState({ status: "loading" })
@@ -190,7 +192,26 @@ export default function AssetPage() {
                             </button>
                         </div>
                     </div>
-                    <LockTimer />
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                        }}
+                    >
+                        <button
+                            type="button"
+                            className="btn-text"
+                            style={{ fontSize: 12 }}
+                            onClick={() => {
+                                resetIdle()
+                                setCategorySheetOpen(true)
+                            }}
+                        >
+                            카테고리 관리
+                        </button>
+                        <LockTimer />
+                    </div>
                 </div>
             </div>
 
@@ -229,6 +250,13 @@ export default function AssetPage() {
                     incomes={state.data.incomes}
                     onChanged={load}
                     onClose={() => setSheetOpen(false)}
+                />
+            )}
+
+            {categorySheetOpen && (
+                <CategoryManager
+                    onChanged={load}
+                    onClose={() => setCategorySheetOpen(false)}
                 />
             )}
         </section>
