@@ -12,258 +12,8 @@ import {
     type AssetCategory,
 } from "@/lib/vault-client"
 import { isApiError } from "@/lib/api-error"
-import { CATEGORY_PALETTE } from "../_lib/asset-categories"
-
-// ─── ColorPicker ─────────────────────────────────────────────────────────────
-
-interface ColorPickerProps {
-    value: string
-    onChange: (color: string) => void
-}
-
-function ColorPicker({ value, onChange }: ColorPickerProps) {
-    return (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {CATEGORY_PALETTE.map((color) => (
-                <button
-                    key={color}
-                    type="button"
-                    aria-label={color}
-                    aria-pressed={value === color}
-                    onClick={() => onChange(color)}
-                    style={{
-                        width: 26,
-                        height: 26,
-                        borderRadius: "50%",
-                        background: color,
-                        border:
-                            value === color
-                                ? "3px solid var(--color-text)"
-                                : "3px solid transparent",
-                        cursor: "pointer",
-                        padding: 0,
-                        outline: "none",
-                    }}
-                />
-            ))}
-        </div>
-    )
-}
-
-// ─── AddSection ──────────────────────────────────────────────────────────────
-
-interface AddSectionProps {
-    onAdd: (name: string, color: string) => Promise<void>
-    onActivity: () => void
-}
-
-function AddSection({ onAdd, onActivity }: AddSectionProps) {
-    const [name, setName] = useState("")
-    const [color, setColor] = useState(CATEGORY_PALETTE[0] ?? "#f2994a")
-    const [saving, setSaving] = useState(false)
-
-    async function handleSubmit(e: React.FormEvent) {
-        e.preventDefault()
-        if (!name.trim() || saving) return
-        setSaving(true)
-        try {
-            await onAdd(name.trim(), color)
-            setName("")
-            setColor(CATEGORY_PALETTE[0] ?? "#f2994a")
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    return (
-        <form onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
-            <div
-                style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: "var(--color-text-muted)",
-                    marginBottom: 8,
-                }}
-            >
-                새 카테고리
-            </div>
-            <input
-                type="text"
-                className="input"
-                placeholder="이름 (최대 20자)"
-                value={name}
-                maxLength={20}
-                onChange={(e) => {
-                    onActivity()
-                    setName(e.target.value)
-                }}
-                style={{ marginBottom: 10 }}
-            />
-            <ColorPicker
-                value={color}
-                onChange={(c) => {
-                    onActivity()
-                    setColor(c)
-                }}
-            />
-            <button
-                type="submit"
-                className="btn"
-                disabled={!name.trim() || saving}
-                style={{ width: "100%", marginTop: 12 }}
-            >
-                {saving ? "추가 중…" : "+ 추가"}
-            </button>
-        </form>
-    )
-}
-
-// ─── CategoryRow ─────────────────────────────────────────────────────────────
-
-interface CategoryRowProps {
-    category: AssetCategory
-    onEdit: (
-        id: string,
-        patch: { name?: string; color?: string },
-    ) => Promise<void>
-    onDelete: (category: AssetCategory) => void
-    onActivity: () => void
-}
-
-function CategoryRow({
-    category,
-    onEdit,
-    onDelete,
-    onActivity,
-}: CategoryRowProps) {
-    const [editing, setEditing] = useState(false)
-    const [name, setName] = useState(category.name)
-    const [color, setColor] = useState(category.color)
-    const [saving, setSaving] = useState(false)
-
-    function cancelEdit() {
-        onActivity()
-        setEditing(false)
-        setName(category.name)
-        setColor(category.color)
-    }
-
-    async function handleSave() {
-        if (saving) return
-        setSaving(true)
-        try {
-            await onEdit(category.id, {
-                name: name.trim() || category.name,
-                color,
-            })
-            setEditing(false)
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    if (editing) {
-        return (
-            <div
-                style={{
-                    padding: "12px 0",
-                    borderBottom: "1px solid var(--color-border)",
-                }}
-            >
-                <input
-                    type="text"
-                    className="input"
-                    value={name}
-                    maxLength={20}
-                    onChange={(e) => {
-                        onActivity()
-                        setName(e.target.value)
-                    }}
-                    style={{ marginBottom: 10 }}
-                />
-                <ColorPicker
-                    value={color}
-                    onChange={(c) => {
-                        onActivity()
-                        setColor(c)
-                    }}
-                />
-                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                    <button
-                        type="button"
-                        className="btn secondary"
-                        onClick={cancelEdit}
-                        style={{ flex: 1 }}
-                    >
-                        취소
-                    </button>
-                    <button
-                        type="button"
-                        className="btn"
-                        onClick={handleSave}
-                        disabled={saving}
-                        style={{ flex: 1 }}
-                    >
-                        {saving ? "저장 중…" : "저장"}
-                    </button>
-                </div>
-            </div>
-        )
-    }
-
-    return (
-        <div
-            style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "12px 0",
-                borderBottom: "1px solid var(--color-border)",
-            }}
-        >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span
-                    aria-hidden="true"
-                    style={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: "50%",
-                        background: category.color,
-                        flexShrink: 0,
-                    }}
-                />
-                <span style={{ fontSize: 14, fontWeight: 600 }}>
-                    {category.name}
-                </span>
-            </div>
-            <div style={{ display: "flex", gap: 12 }}>
-                <button
-                    type="button"
-                    className="btn-text"
-                    onClick={() => {
-                        onActivity()
-                        setEditing(true)
-                    }}
-                >
-                    수정
-                </button>
-                <button
-                    type="button"
-                    className="btn-text"
-                    style={{ color: "var(--color-danger, #ef4444)" }}
-                    onClick={() => {
-                        onActivity()
-                        onDelete(category)
-                    }}
-                >
-                    삭제
-                </button>
-            </div>
-        </div>
-    )
-}
-
-// ─── CategoryManager (main export) ───────────────────────────────────────────
+import { CategoryAddSection } from "./CategoryAddSection"
+import { CategoryRow } from "./CategoryRow"
 
 interface Props {
     onClose: () => void
@@ -304,6 +54,7 @@ export function CategoryManager({ onClose, onChanged }: Props) {
             onChanged?.()
         } catch (e) {
             setError(isApiError(e) ? e.message : "추가에 실패했습니다.")
+            throw e
         }
     }
 
@@ -318,6 +69,7 @@ export function CategoryManager({ onClose, onChanged }: Props) {
             onChanged?.()
         } catch (e) {
             setError(isApiError(e) ? e.message : "수정에 실패했습니다.")
+            throw e
         }
     }
 
@@ -381,7 +133,7 @@ export function CategoryManager({ onClose, onChanged }: Props) {
                     </div>
                 )}
 
-                <AddSection onAdd={handleAdd} onActivity={resetIdle} />
+                <CategoryAddSection onAdd={handleAdd} onActivity={resetIdle} />
 
                 {loading ? (
                     <div
