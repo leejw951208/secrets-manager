@@ -15,6 +15,7 @@ import { isApiError } from "@/lib/api-error"
 import { SkeletonCard } from "@/components/Skeleton"
 import { useVault } from "../_lib/vault-context"
 import { openExpense, openIncome } from "./_lib/asset-payload"
+import { migrateExpenseCategories } from "./_lib/asset-migrate-categories"
 import {
     byDay,
     totalIncome,
@@ -60,14 +61,30 @@ export default function AssetPage() {
                     listRecurring(),
                     listAssetCategories(),
                 ])
+            // 기존 지출 카테고리 마이그레이션(이름→categoryId, 1회). 멱등.
+            // categoryId 없는 지출이 있으면 옛 블롭의 이름으로 매칭해 PATCH 하고,
+            // 처리 건수>0 이면 재조회한다. 루프 방지: 이 load() 호출당 최대 1회만 재조회.
+            const hasLegacy = expM.some((e) => e.categoryId === null)
+            let freshExpM = expM
+            if (hasLegacy) {
+                const migrated = await migrateExpenseCategories(
+                    vaultKey,
+                    categories,
+                    expM,
+                )
+                if (migrated > 0) {
+                    freshExpM = await listExpenses(month)
+                }
+            }
+
             // 고정 지출 머티리얼라이즈(멱등). 해당 월 분만 생성한다.
             const createdM = await materializeRecurring(
                 vaultKey,
                 month,
                 templates,
-                expM,
+                freshExpM,
             )
-            const allViews: ExpenseView[] = [...expM, ...createdM]
+            const allViews: ExpenseView[] = [...freshExpM, ...createdM]
 
             // 수입 복호화(실패분 스킵) → 합계
             const incomeSettled = await Promise.allSettled(
