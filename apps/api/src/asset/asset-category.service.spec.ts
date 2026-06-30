@@ -26,6 +26,12 @@ describe("AssetCategoryService", () => {
         const result = await svc.list()
 
         expect(prisma.assetCategory.createMany).toHaveBeenCalledTimes(1)
+        expect(prisma.assetCategory.createMany).toHaveBeenCalledWith({
+            data: expect.arrayContaining([{ name: "식비", color: "#f2994a" }]),
+        })
+        expect(
+            prisma.assetCategory.createMany.mock.calls[0][0].data,
+        ).toHaveLength(8)
         expect(result).toEqual(seeded)
     })
 
@@ -46,11 +52,12 @@ describe("AssetCategoryService", () => {
         prisma.assetCategory.create.mockResolvedValue({ id: "9" })
         const svc = new AssetCategoryService(prisma as never)
 
-        await svc.create({ name: "여행", color: "#3bb273" })
+        const result = await svc.create({ name: "여행", color: "#3bb273" })
 
         expect(prisma.assetCategory.create).toHaveBeenCalledWith({
             data: { name: "여행", color: "#3bb273" },
         })
+        expect(result).toEqual({ id: "9" })
     })
 
     it("update 는 존재하지 않으면 404", async () => {
@@ -60,6 +67,38 @@ describe("AssetCategoryService", () => {
 
         await expect(svc.update("x", { name: "a" })).rejects.toMatchObject({
             response: { code: ASSET_ERRORS.ASSET_CATEGORY_NOT_FOUND },
+        })
+    })
+
+    it("update 는 이름·색으로 수정한다", async () => {
+        const prisma = makePrisma()
+        prisma.assetCategory.findUnique.mockResolvedValue({ id: "1" })
+        prisma.assetCategory.update.mockResolvedValue({
+            id: "1",
+            name: "여행",
+            color: "#3bb273",
+        })
+        const svc = new AssetCategoryService(prisma as never)
+
+        await svc.update("1", { name: "여행", color: "#3bb273" })
+
+        expect(prisma.assetCategory.update).toHaveBeenCalledWith({
+            where: { id: "1" },
+            data: { name: "여행", color: "#3bb273" },
+        })
+    })
+
+    it("update 는 부분 업데이트를 지원한다", async () => {
+        const prisma = makePrisma()
+        prisma.assetCategory.findUnique.mockResolvedValue({ id: "1" })
+        prisma.assetCategory.update.mockResolvedValue({ id: "1", name: "여행" })
+        const svc = new AssetCategoryService(prisma as never)
+
+        await svc.update("1", { name: "여행" })
+
+        expect(prisma.assetCategory.update).toHaveBeenCalledWith({
+            where: { id: "1" },
+            data: { name: "여행" },
         })
     })
 
