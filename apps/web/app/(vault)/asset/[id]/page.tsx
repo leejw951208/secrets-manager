@@ -35,7 +35,12 @@ export default function EditExpensePage() {
     useEffect(() => {
         listAssetCategories()
             .then(setCategories)
-            .catch(() => {})
+            .catch(() => {
+                setState({
+                    status: "error",
+                    message: "카테고리를 불러오지 못했습니다.",
+                })
+            })
     }, [])
 
     useEffect(() => {

@@ -1,7 +1,7 @@
 "use client"
 // 지출 추가/수정 폼(디자인 화면 12). 금액·항목·카테고리·결제방법을 VK 로 봉인해 저장한다.
 // 신규에서 고정 ON 이면 템플릿(RecurringExpense)을 만들고 당월 인스턴스를 함께 생성한다(이후 달 자동 생성).
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useVault } from "../../_lib/vault-context"
 import { isApiError } from "@/lib/api-error"
 import {
@@ -56,6 +56,14 @@ export function ExpenseForm({
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [deleteMenu, setDeleteMenu] = useState(false)
+
+    // 신규 폼에서 카테고리 목록이 비동기로 도착했을 때 첫 항목을 자동 선택한다.
+    // categoryId 가 이미 설정된 경우(수정 모드 또는 사용자가 직접 선택)에는 동작하지 않는다.
+    useEffect(() => {
+        if (initial === null && categoryId === null && categories.length > 0) {
+            setCategoryId(categories[0].id)
+        }
+    }, [categories, categoryId, initial])
 
     const amountNum = Number(amount || "0")
 
