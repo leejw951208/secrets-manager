@@ -82,15 +82,16 @@ export default function AssetPage() {
             const hasLegacy = expM.some((e) => e.categoryId === null)
             let freshExpM = expM
             if (hasLegacy && !getMigrationGuard(month)) {
-                const migrated = await migrateExpenseCategories(
-                    vaultKey,
-                    categories,
-                    expM,
-                )
+                const { migrated, pendingLegacy } =
+                    await migrateExpenseCategories(vaultKey, categories, expM)
                 if (migrated > 0) {
                     freshExpM = await listExpenses(month)
                 }
-                setMigrationGuard(month)
+                // 매칭 못 한 legacy 이름이 남아 있으면(카테고리 추가 후 재시도 필요)
+                // 가드하지 않는다. 진짜 미분류만 남았을 때만 영구 가드한다.
+                if (pendingLegacy === 0) {
+                    setMigrationGuard(month)
+                }
             }
 
             // 고정 지출 머티리얼라이즈(멱등). 해당 월 분만 생성한다.
