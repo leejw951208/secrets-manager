@@ -31,6 +31,7 @@ const tmpl: RecurringView = {
     iv: "AA",
     ciphertext: "BB",
     authTag: "CC",
+    categoryId: null,
 }
 const termTmpl: RecurringView = {
     id: "r2",
@@ -41,6 +42,7 @@ const termTmpl: RecurringView = {
     iv: "AA",
     ciphertext: "BB",
     authTag: "CC",
+    categoryId: null,
 }
 const key = {} as CryptoKey
 
